@@ -6,7 +6,9 @@ import os
 import pandas_ta as ta  # Import Pandas TA for technical indicators
 import matplotlib.pyplot as plt
 import mplfinance as mpf
+import talib
 from pre_selection import composite_index, correlation_plots
+
 import gc
 gc.collect()
 
@@ -136,12 +138,14 @@ for ticker_symbol in ticker_symbols:
     stock_series['Weighted_Closing_Price'] = ta.overlap.wcp(stock_series['High'], stock_series['Low'], stock_series['Close'])
 
     # Category 6: Hilbert Transform indicators
-    stock_series['Hilbert_Dominant_Cycle_Period'] = ta.trend.ht_dcperiod(stock_series['Close'])
-    stock_series['Hilbert_Dominant_Cycle_Phase'] = ta.trend.ht_dcphase(stock_series['Close'])
-    stock_series['Hilbert_Phasor_Components_Inphase'], stock_series['Hilbert_Phasor_Components_Quadrature'] = ta.trend.ht_phasor(stock_series['Close'])
-    stock_series['Hilbert_SineWave'] = ta.trend.ht_sine(stock_series['Close'])
-    stock_series['Hilbert_LeadSineWave'] = ta.trend.ht_trendmode(stock_series['Close'])
-    stock_series['Hilbert_Trend_vs_Cycle_Mode'] = ta.trend.ht_trendmode(stock_series['Close'])
+    stock_series['Hilbert_Dominant_Cycle_Period'] = talib.HT_DCPERIOD(stock_series['Close'])
+    stock_series['Hilbert_Dominant_Cycle_Phase'] = talib.HT_DCPHASE(stock_series['Close'])
+    inphase, quadrature = talib.HT_PHASOR(stock_series['Close'])
+    stock_series['Hilbert_Phasor_Components_Inphase'] = inphase
+    stock_series['Hilbert_Phasor_Components_Quadrature'] = quadrature
+    stock_series['Hilbert_SineWave'] = talib.HT_SINE(stock_series['Close'])
+    stock_series['Hilbert_LeadSineWave'] = talib.HT_LEADSINE(stock_series['Close'])
+    stock_series['Hilbert_Trend_vs_Cycle_Mode'] = talib.HT_TRENDMODE(stock_series['Close'])
 
     # Store the data in the dictionary
     stock_indicators_data[ticker_symbol] = stock_series
