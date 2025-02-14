@@ -3,10 +3,10 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 import os
-import pandas_ta as ta  # Import Pandas TA for technical indicators
+import pandas_ta as ta # Import Pandas TA for technical indicators
 import matplotlib.pyplot as plt
 import mplfinance as mpf
-import talib
+#import talib
 from pre_selection import composite_index, correlation_plots
 
 import gc
@@ -15,10 +15,6 @@ gc.collect()
 
 start_date, end_date = '2010-01-01','2022-12-31'
 window = 30
-
-# ========================================================
-# ========================================================
-# ========================================================
 
 # List of stock symbols
 ticker_symbols = ['^SPX',  # S&P 500 Index and #############S&P 500 IT Sector Index
@@ -64,18 +60,9 @@ for ticker_symbol in ticker_symbols:
     print(f"Plot saved in the directory: {output_dir}/{ticker_symbol}_plot.png")
     '''
 
-
 stock_df = pd.concat(stock_data, axis=1)
 stock_df.index = pd.to_datetime(stock_df.index)
 stock_df = stock_df.iloc[window:]
-print("Shape of stock_df: ", stock_df.shape)
-print("Is there any nan value in stock_df: ", stock_df.isna().any().any())
-print("\n")
-
-# Ensure the output directory exists
-output_dir = 'csv'
-os.makedirs(output_dir, exist_ok=True)
-stock_df.to_csv(f"{output_dir}/stock_df.csv", index=True)
 
 
 
@@ -120,13 +107,10 @@ for ticker_symbol in ticker_symbols:
     stock_series['MACD'] = exp12 - exp26
     stock_series['MACD_Signal'] = stock_series['MACD'].ewm(span=9, adjust=False).mean()
     stock_series['MACD_Histogram'] = stock_series['MACD'] - stock_series['MACD_Signal']
-
-   # stock_series['Money_Flow_Index'] = ta.momentum.mfi(stock_series['High'], stock_series['Low'], stock_series['Close'], stock_series['Volume'], window=14)
-
-
+    stock_series['Money_Flow_Index'] = ta.volume.mfi(stock_series['High'], stock_series['Low'], stock_series['Close'], stock_series['Volume'], window=14)
 
     # Category 3: Volatility Indicators
-    #stock_series['Normalized_Average_True_Range'] = ta.volatility.atr(stock_series['High'], stock_series['Low'], stock_series['Close'], window=14)
+    #stock_series['Normalized_Average_True_Range'] = ta.volatility.natr(stock_series['High'], stock_series['Low'], stock_series['Close'], window=14)
 
     # Category 4: Volume Indicators
     stock_series['Chaikin_A/D_Line'] = ta.volume.ad(stock_series['High'], stock_series['Low'], stock_series['Close'], stock_series['Volume'])
@@ -136,7 +120,8 @@ for ticker_symbol in ticker_symbols:
     stock_series['Median_Price'] = ta.statistics.median(stock_series['Close'])
     stock_series['Typical_Price'] = ta.overlap.hlc3(stock_series['High'], stock_series['Low'], stock_series['Close'])
     stock_series['Weighted_Closing_Price'] = ta.overlap.wcp(stock_series['High'], stock_series['Low'], stock_series['Close'])
-
+    
+    '''
     # Category 6: Hilbert Transform indicators
     stock_series['Hilbert_Dominant_Cycle_Period'] = talib.HT_DCPERIOD(stock_series['Close'])
     stock_series['Hilbert_Dominant_Cycle_Phase'] = talib.HT_DCPHASE(stock_series['Close'])
@@ -146,19 +131,16 @@ for ticker_symbol in ticker_symbols:
     stock_series['Hilbert_SineWave'] = talib.HT_SINE(stock_series['Close'])
     stock_series['Hilbert_LeadSineWave'] = talib.HT_LEADSINE(stock_series['Close'])
     stock_series['Hilbert_Trend_vs_Cycle_Mode'] = talib.HT_TRENDMODE(stock_series['Close'])
+    '''
 
     # Store the data in the dictionary
-    stock_indicators_data[ticker_symbol] = stock_series
+    stock_indicators_data[ticker_symbol] = stock_series.drop(columns=['Open', 'High', 'Low', 'Close', 'Volume'])
 
 
 # Concatenate all stock data into a single DataFrame
 stock_indicators_df = pd.concat(stock_indicators_data, axis=1)
 stock_indicators_df.index = pd.to_datetime(stock_indicators_df.index)
-
-# Ensure the output directory exists for CSV
-output_dir = 'csv'
-os.makedirs(output_dir, exist_ok=True)
-stock_indicators_df.to_csv(f"{output_dir}/stock_indicators_df.csv", index=True)
+#stock_indicators_df.index = stock_indicators_df.index.strftime('%d/%m/%Y')
 
 
 
@@ -198,17 +180,7 @@ macro_df_fred = pd.DataFrame(macro_data_fred)
 macro_df_fred.index = pd.to_datetime(macro_df_fred.index)
 macro_df_fred = macro_df_fred.resample('D').ffill().ffill().bfill() # Convert to daily frequency using forward fill
 
-print("Shape of macro_df_fred: ", macro_df_fred.shape)
-print("Is there any nan value in macro_df_fred: ", macro_df_fred.isna().any().any())
-print("\n")
 
-
-
-
-# Ensure the output directory exists
-output_dir = 'csv'
-os.makedirs(output_dir, exist_ok=True)
-macro_df_fred.to_csv(f"{output_dir}/macro_data_fred.csv", index=True)
 
 # Define the ticker symbols for the commodities
 macro_series_commodities = {
@@ -227,25 +199,48 @@ for name, ticker in macro_series_commodities.items():
 macro_df_commidities = pd.concat(macro_data_commidities, axis=1)
 macro_df_commidities = macro_df_commidities.resample('D').ffill().ffill().bfill() # Convert to daily frequency using forward fill
 
-print("Shape of macro_df_commidities: ", macro_df_commidities.shape)
-print("Is there any nan value in macro_df_commidities: ", macro_df_commidities.isna().any().any())
-print("\n")
+
+stock_indicators_df = stock_indicators_df.resample('D').ffill().ffill().bfill().loc[stock_df.index[0]:]
+stock_indicators_df.index = stock_indicators_df.index.strftime('%d/%m/%Y')
+
+macro_df_fred = macro_df_fred.reindex(stock_df.index).ffill().bfill()
+macro_df_fred.index = macro_df_fred.index.strftime('%d/%m/%Y')
+
+macro_df_commidities = macro_df_commidities.reindex(stock_df.index).ffill().bfill()
+macro_df_commidities.index = macro_df_commidities.index.strftime('%d/%m/%Y')
+
+stock_df.index = stock_df.index.strftime('%d/%m/%Y')
+
 
 
 # Ensure the output directory exists
 output_dir = 'csv'
 os.makedirs(output_dir, exist_ok=True)
+stock_df.to_csv(f"{output_dir}/stock_df.csv", index=True)
+stock_indicators_df.to_csv(f"{output_dir}/stock_indicators_df.csv", index=True)
+macro_df_fred.to_csv(f"{output_dir}/macro_df_fred.csv", index=True)
 macro_df_commidities.to_csv(f"{output_dir}/macro_df_commidities.csv", index=True)
 
 
+print("Shape of stock_df: ", stock_df.shape)
+print("Is there any nan value in stock_df: ", stock_df.isna().any().any())
+print("\n")
+
+print("Shape of stock_indicators_df: ", stock_indicators_df.shape)
+print("Is there any nan value in stock_indicators_df: ", stock_indicators_df.isna().any().any())
+print("\n")
 
 
+print("Shape of macro_df_fred: ", macro_df_fred.shape)
+print("Is there any nan value in macro_df_fred: ", macro_df_fred.isna().any().any())
+print("\n")
 
-
+print("Shape of macro_df_commidities: ", macro_df_commidities.shape)
+print("Is there any nan value in macro_df_commidities: ", macro_df_commidities.isna().any().any())
+print("\n")
 
 '''
-# Align macroeconomic data with OHLCV
-aligned_macro = macro_df_fred.reindex(stock_data.index).ffill().bfill()
+
 
 
 composite_index_df = composite_index(all_stock_data, output_dir)
