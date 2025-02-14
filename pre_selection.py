@@ -32,4 +32,4 @@ def composite_index(all_stock_data, output_dir):
 
 def correlation_plots(composite_index_df, macro_df_commidities):
     
-
+    return
