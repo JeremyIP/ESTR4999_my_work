@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 
 def composite_index(all_stock_data, output_dir):
     # Combine closing prices of all stocks into a single DataFrame
+    print(all_stock_data.index)
+    #all_stock_data = all_stock_data.drop(columns=['^SPX']) #?????????????
     closing_prices = pd.DataFrame({symbol: data['Close'] for symbol, data in all_stock_data.items()})
 
     # Drop rows with missing values (if any stock is missing data on a specific date)

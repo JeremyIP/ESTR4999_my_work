@@ -6,7 +6,6 @@ import os
 import pandas_ta as ta # Import Pandas TA for technical indicators
 import matplotlib.pyplot as plt
 import mplfinance as mpf
-#import talib
 from pre_selection import composite_index, correlation_plots
 
 import gc
@@ -239,14 +238,11 @@ print("Shape of macro_df_commidities: ", macro_df_commidities.shape)
 print("Is there any nan value in macro_df_commidities: ", macro_df_commidities.isna().any().any())
 print("\n")
 
-'''
 
-
-
-composite_index_df = composite_index(all_stock_data, output_dir)
+output_dir = 'plots'
+composite_index_df = composite_index(stock_df, output_dir)
 correlation_df = correlation_plots(composite_index_df, macro_df_commidities)
 
-'''
 
 
 '''
