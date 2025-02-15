@@ -6,6 +6,7 @@ import os
 import pandas_ta as ta # Import Pandas TA for technical indicators
 import matplotlib.pyplot as plt
 import mplfinance as mpf
+from scipy.signal import hilbert
 from pre_selection import composite_index, correlation_plots
 
 import gc
@@ -16,8 +17,7 @@ start_date, end_date = '2010-01-01','2022-12-31'
 window = 30
 
 # List of stock symbols
-ticker_symbols = ['^SPX',  # S&P 500 Index and #############S&P 500 IT Sector Index
-                  'AAPL', 'MSFT', 'ORCL', 'AMD', 'CSCO', 'ADBE', 
+ticker_symbols = ['AAPL', 'MSFT', 'ORCL', 'AMD', 'CSCO', 'ADBE', 
                   'IBM', 'TXN', 'AMAT', 'MU', 'ADI', 'INTC', 
                   'LRCX', 'KLAC', 'MSI', 'GLW', 'HPQ', 'TYL', 
                   'PTC', 'WDC']
@@ -45,7 +45,9 @@ for ticker_symbol in ticker_symbols:
     for feature in ['Open', 'High', 'Low', 'Close', 'Volume']:
         stock_series[feature] = stock_series[feature].rolling(window=window).mean()
 
+    # Rename columns to the desired format
     stock_data[ticker_symbol] = stock_series  # Store the smoothed data in the dictionary
+
     '''
     # Plot using mplfinance
     mpf.plot(stock_series,
@@ -62,6 +64,7 @@ for ticker_symbol in ticker_symbols:
 stock_df = pd.concat(stock_data, axis=1)
 stock_df.index = pd.to_datetime(stock_df.index)
 stock_df = stock_df.iloc[window:]
+
 
 
 
@@ -109,7 +112,26 @@ for ticker_symbol in ticker_symbols:
     stock_series['Money_Flow_Index'] = ta.volume.mfi(stock_series['High'], stock_series['Low'], stock_series['Close'], stock_series['Volume'], window=14)
 
     # Category 3: Volatility Indicators
-    #stock_series['Normalized_Average_True_Range'] = ta.volatility.natr(stock_series['High'], stock_series['Low'], stock_series['Close'], window=14)
+    def wwma(values, n):
+        """
+        J. Welles Wilder's EMA 
+        """
+        return values.ewm(alpha=1/n, adjust=False).mean()
+
+    def atr(df, n=14):
+        data = df.copy()
+        high = data['High']
+        low = data['Low']
+        close = data['Close']
+        data['tr0'] = abs(high - low)
+        data['tr1'] = abs(high - close.shift())
+        data['tr2'] = abs(low - close.shift())
+        tr = data[['tr0', 'tr1', 'tr2']].max(axis=1)
+        atr = wwma(tr, n)
+        return atr
+
+    stock_series['Normalized_Average_True_Range'] = atr(stock_series)
+
 
     # Category 4: Volume Indicators
     stock_series['Chaikin_A/D_Line'] = ta.volume.ad(stock_series['High'], stock_series['Low'], stock_series['Close'], stock_series['Volume'])
@@ -120,17 +142,42 @@ for ticker_symbol in ticker_symbols:
     stock_series['Typical_Price'] = ta.overlap.hlc3(stock_series['High'], stock_series['Low'], stock_series['Close'])
     stock_series['Weighted_Closing_Price'] = ta.overlap.wcp(stock_series['High'], stock_series['Low'], stock_series['Close'])
     
-    '''
+    
     # Category 6: Hilbert Transform indicators
-    stock_series['Hilbert_Dominant_Cycle_Period'] = talib.HT_DCPERIOD(stock_series['Close'])
-    stock_series['Hilbert_Dominant_Cycle_Phase'] = talib.HT_DCPHASE(stock_series['Close'])
-    inphase, quadrature = talib.HT_PHASOR(stock_series['Close'])
+    def compute_dominant_cycle_phase(prices):
+        analytic_signal = hilbert(prices)
+        phase = np.angle(analytic_signal)
+        return phase
+
+    def compute_phasor_components(prices):
+        analytic_signal = hilbert(prices)
+        inphase = np.real(analytic_signal)
+        quadrature = np.imag(analytic_signal)
+        return inphase, quadrature
+    
+    def compute_sine_wave(prices):
+        phase = compute_dominant_cycle_phase(prices)
+        sine_wave = np.sin(phase)
+        lead_sine_wave = np.sin(phase + np.pi / 4)  # Lead by 45 degrees
+        return sine_wave, lead_sine_wave
+
+    def compute_trend_vs_cycle_mode(prices):
+        phase = compute_dominant_cycle_phase(prices)
+        trend_mode = (np.diff(phase) > 0).astype(int)  # 1 if phase increases, 0 otherwise
+        trend_mode = np.append(trend_mode, 0)  # Add an extra value to match the series length
+        return trend_mode
+    
+    stock_series['Hilbert_Dominant_Cycle_Phase'] = compute_dominant_cycle_phase(stock_series['Close'])
+
+    inphase, quadrature = compute_phasor_components(stock_series['Close'])
     stock_series['Hilbert_Phasor_Components_Inphase'] = inphase
     stock_series['Hilbert_Phasor_Components_Quadrature'] = quadrature
-    stock_series['Hilbert_SineWave'] = talib.HT_SINE(stock_series['Close'])
-    stock_series['Hilbert_LeadSineWave'] = talib.HT_LEADSINE(stock_series['Close'])
-    stock_series['Hilbert_Trend_vs_Cycle_Mode'] = talib.HT_TRENDMODE(stock_series['Close'])
-    '''
+
+    sine_wave, lead_sine_wave = compute_sine_wave(stock_series['Close'])
+    stock_series['Hilbert_SineWave'] = sine_wave
+    stock_series['Hilbert_LeadSineWave'] = lead_sine_wave
+
+    stock_series['Hilbert_Trend_vs_Cycle_Mode'] = compute_trend_vs_cycle_mode(stock_series['Close'])
 
     # Store the data in the dictionary
     stock_indicators_data[ticker_symbol] = stock_series.drop(columns=['Open', 'High', 'Low', 'Close', 'Volume'])
@@ -139,8 +186,6 @@ for ticker_symbol in ticker_symbols:
 # Concatenate all stock data into a single DataFrame
 stock_indicators_df = pd.concat(stock_indicators_data, axis=1)
 stock_indicators_df.index = pd.to_datetime(stock_indicators_df.index)
-#stock_indicators_df.index = stock_indicators_df.index.strftime('%d/%m/%Y')
-
 
 
 # # Define FRED API key
@@ -199,8 +244,41 @@ macro_df_commidities = pd.concat(macro_data_commidities, axis=1)
 macro_df_commidities = macro_df_commidities.resample('D').ffill().ffill().bfill() # Convert to daily frequency using forward fill
 
 
-stock_indicators_df = stock_indicators_df.resample('D').ffill().ffill().bfill().loc[stock_df.index[0]:]
+
+ticker_symbols = ['^GSPC', '^SP500-45']  # S&P 500 Index and S&P 500 IT Sector Index
+
+# Initialize a dictionary to hold index data
+index_data = {}
+
+# Fetch OHLCV data for each ticker
+for ticker_symbol in ticker_symbols:
+    ticker = yf.Ticker(ticker_symbol)
+    index_series = ticker.history(
+        start=start_date,
+        end=end_date,
+        interval="1d",
+        auto_adjust=False
+    )[['Open', 'High', 'Low', 'Close', 'Volume']]
+    
+    index_series.index = index_series.index.tz_localize(None)  # Remove timezone
+
+    # Calculate the Simple Moving Average (SMA) for each feature
+    for feature in ['Open', 'High', 'Low', 'Close', 'Volume']:
+        index_series[feature] = index_series[feature].rolling(window=window).mean()
+
+    # Rename columns to the desired format
+    index_data[ticker_symbol] = index_series  # Store the smoothed data in the dictionary
+
+
+index_df = pd.concat(index_data, axis=1)
+index_df.index = pd.to_datetime(index_df.index)
+index_df = index_df.iloc[window:]
+
+
+
+stock_indicators_df = stock_indicators_df.ffill().ffill().bfill()
 stock_indicators_df.index = stock_indicators_df.index.strftime('%d/%m/%Y')
+stock_indicators_df = stock_indicators_df.iloc[window:]
 
 macro_df_fred = macro_df_fred.reindex(stock_df.index).ffill().bfill()
 macro_df_fred.index = macro_df_fred.index.strftime('%d/%m/%Y')
@@ -208,17 +286,22 @@ macro_df_fred.index = macro_df_fred.index.strftime('%d/%m/%Y')
 macro_df_commidities = macro_df_commidities.reindex(stock_df.index).ffill().bfill()
 macro_df_commidities.index = macro_df_commidities.index.strftime('%d/%m/%Y')
 
+index_df = index_df.reindex(stock_df.index).ffill().bfill()
+index_df.index = index_df.index.strftime('%d/%m/%Y')
+
 stock_df.index = stock_df.index.strftime('%d/%m/%Y')
 
 
+macro_df = pd.concat([macro_df_fred, macro_df_commidities], axis=1)
 
 # Ensure the output directory exists
 output_dir = 'csv'
 os.makedirs(output_dir, exist_ok=True)
 stock_df.to_csv(f"{output_dir}/stock_df.csv", index=True)
 stock_indicators_df.to_csv(f"{output_dir}/stock_indicators_df.csv", index=True)
-macro_df_fred.to_csv(f"{output_dir}/macro_df_fred.csv", index=True)
-macro_df_commidities.to_csv(f"{output_dir}/macro_df_commidities.csv", index=True)
+macro_df.to_csv(f"{output_dir}/macro_df.csv", index=True)
+index_df.to_csv(f"{output_dir}/index_df.csv", index=True)
+
 
 
 print("Shape of stock_df: ", stock_df.shape)
@@ -229,49 +312,28 @@ print("Shape of stock_indicators_df: ", stock_indicators_df.shape)
 print("Is there any nan value in stock_indicators_df: ", stock_indicators_df.isna().any().any())
 print("\n")
 
-
-print("Shape of macro_df_fred: ", macro_df_fred.shape)
-print("Is there any nan value in macro_df_fred: ", macro_df_fred.isna().any().any())
+print("Shape of macro_df: ", macro_df.shape)
+print("Is there any nan value in macro_df: ", macro_df.isna().any().any())
 print("\n")
 
-print("Shape of macro_df_commidities: ", macro_df_commidities.shape)
-print("Is there any nan value in macro_df_commidities: ", macro_df_commidities.isna().any().any())
+print("Shape of index_df: ", index_df.shape)
+print("Is there any nan value in index_df: ", index_df.isna().any().any())
 print("\n")
 
 
 output_dir = 'plots'
 composite_index_df = composite_index(stock_df, output_dir)
-correlation_df = correlation_plots(composite_index_df, macro_df_commidities)
 
 
+#correlation_df = correlation_plots(composite_index_df, macro_df)
 
 '''
-# Align macroeconomic data with OHLCV
-aligned_macro = macro_df.reindex(stock_data.index).ffill().bfill()
-
-# Calculate new technical indicators
-# # 5-Day Weighted Close Price (Weighted Close: (High + Low + 2*Close)/4)
-combined_data = pd.concat([stock_data, aligned_macro], axis=1)
-
-# Calculate Technical Indicators
-combined_data['5WCLPRICE'] = (combined_data['High'] + combined_data['Low'] + 2 * combined_data['Close']) / 4
-combined_data['5WCLPRICE'] = combined_data['5WCLPRICE'].rolling(window=5).mean()
-combined_data['5MedPrice'] = combined_data['Close'].rolling(window=5).median()
-combined_data['5AvgPrice'] = combined_data['Close'].rolling(window=5).mean()
-
-# Drop rows with NaN values resulting from rolling calculations
-combined_data.dropna(inplace=True)
-
-# Calculate mean and std across all columns for normalization
-mean = combined_data.mean()
-std = combined_data.std()
-
 # Ensure the output directory exists
 output_dir = 'dataset/MSFT'
 os.makedirs(output_dir, exist_ok=True)
 
 # Save scaling information
-np.savez(os.path.join(output_dir, 'var_scaler_info.npz'), mean=mean.values, std=std.values)
+np.savez(os.path.join(output_dir, 'var_scaler_info.npz'))
 
 dates = combined_data.index
 norm_time_marker = np.stack([
