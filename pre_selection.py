@@ -34,7 +34,6 @@ def equal_weighted_composite_index(stock_df):
 def cap_weighted_composite_index(stock_df):
 
     closing_prices = stock_df.xs('Close', level=1, axis=1)
-    print(closing_prices)
     volumes = stock_df.xs('Volume', level=1, axis=1)
 
     # Calculate the market value (price * volume) for each stock
