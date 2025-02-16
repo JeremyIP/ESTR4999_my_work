@@ -7,7 +7,7 @@ import pandas_ta as ta # Import Pandas TA for technical indicators
 import matplotlib.pyplot as plt
 import mplfinance as mpf
 from scipy.signal import hilbert
-from pre_selection import composite_index, correlation_plots
+from pre_selection import *
 
 import gc
 gc.collect()
@@ -16,20 +16,19 @@ gc.collect()
 start_date, end_date = '2010-01-01','2022-12-31'
 window = 30
 
-# List of stock symbols
+# 20 stock symbols
 ticker_symbols = ['AAPL', 'MSFT', 'ORCL', 'AMD', 'CSCO', 'ADBE', 
                   'IBM', 'TXN', 'AMAT', 'MU', 'ADI', 'INTC', 
                   'LRCX', 'KLAC', 'MSI', 'GLW', 'HPQ', 'TYL', 
                   'PTC', 'WDC']
 
-# Initialize a dictionary to hold stock data
+# 20 stock data
 stock_data = {}
 
-# Ensure the output directory exists
 output_dir = 'plots'
 os.makedirs(output_dir, exist_ok=True)
 
-# Fetch OHLCV data for each ticker
+# 20 stocks, OHLCV
 for ticker_symbol in ticker_symbols:
     ticker = yf.Ticker(ticker_symbol)
     stock_series = ticker.history(
@@ -68,10 +67,9 @@ stock_df = stock_df.iloc[window:]
 
 
 
-# Initialize a dictionary to hold stock data
+# 20 stocks' 31 indicators (without OHLCV) data
 stock_indicators_data = {}
 
-# Fetch OHLCV data for each ticker and calculate indicators
 for ticker_symbol in ticker_symbols:
     ticker = yf.Ticker(ticker_symbol)
     stock_series = ticker.history(
@@ -163,8 +161,8 @@ for ticker_symbol in ticker_symbols:
 
     def compute_trend_vs_cycle_mode(prices):
         phase = compute_dominant_cycle_phase(prices)
-        trend_mode = (np.diff(phase) > 0).astype(int)  # 1 if phase increases, 0 otherwise
-        trend_mode = np.append(trend_mode, 0)  # Add an extra value to match the series length
+        trend_mode = (np.diff(phase) > 0).astype(int)  
+        trend_mode = np.append(trend_mode, 0)  
         return trend_mode
     
     stock_series['Hilbert_Dominant_Cycle_Phase'] = compute_dominant_cycle_phase(stock_series['Close'])
@@ -179,11 +177,10 @@ for ticker_symbol in ticker_symbols:
 
     stock_series['Hilbert_Trend_vs_Cycle_Mode'] = compute_trend_vs_cycle_mode(stock_series['Close'])
 
-    # Store the data in the dictionary
+    # Just need indicators, but not OHLCV
     stock_indicators_data[ticker_symbol] = stock_series.drop(columns=['Open', 'High', 'Low', 'Close', 'Volume'])
 
 
-# Concatenate all stock data into a single DataFrame
 stock_indicators_df = pd.concat(stock_indicators_data, axis=1)
 stock_indicators_df.index = pd.to_datetime(stock_indicators_df.index)
 
@@ -192,7 +189,7 @@ stock_indicators_df.index = pd.to_datetime(stock_indicators_df.index)
 API_KEY = 'ec9c3a532618d0109bc583602f15dc83'
 fred = Fred(api_key=API_KEY)
 
-# # Define macroeconomic series and fetch data
+# 18 macro indicators (NOT commodities) from fred 
 macro_series_fred = {
     'Total Vehicle Sales': 'TOTALSA', # 1976 to Dec 2024
     'Domestic Auto Production': 'DAUPSA', # Jan 1993 to Oct 2024
@@ -214,19 +211,17 @@ macro_series_fred = {
     'New Privately-Owned Housing Units Started: Total Units': 'HOUST' # 1959 to Dec 2024
 }
 
-# Fetch macroeconomic data
 macro_data_fred = {}
 for name, series_id in macro_series_fred.items():
     macro_data_fred[name] = fred.get_series(series_id, start_date, end_date)
 
-# Convert macroeconomic data to a single DataFrame
 macro_df_fred = pd.DataFrame(macro_data_fred)
 macro_df_fred.index = pd.to_datetime(macro_df_fred.index)
 macro_df_fred = macro_df_fred.resample('D').ffill().ffill().bfill() # Convert to daily frequency using forward fill
 
 
 
-# Define the ticker symbols for the commodities
+# 5 macro indicators (Commodities)
 macro_series_commodities = {
     'Gold': 'GC=F',  # Gold Futures
     'Crude Oil': 'CL=F',  # Crude Oil Futures
@@ -235,7 +230,6 @@ macro_series_commodities = {
     'Reformulated Blendstock Oil': 'RB=F'  # RBOB Gasoline Futures
 }
 
-# Fetch commodity data
 macro_data_commidities = []
 for name, ticker in macro_series_commodities.items():
     macro_data_commidities.append(yf.download(ticker, start=start_date, end=end_date)["Close"])
@@ -247,7 +241,6 @@ macro_df_commidities = macro_df_commidities.resample('D').ffill().ffill().bfill(
 
 ticker_symbols = ['^GSPC', '^SP500-45']  # S&P 500 Index and S&P 500 IT Sector Index
 
-# Initialize a dictionary to hold index data
 index_data = {}
 
 # Fetch OHLCV data for each ticker
@@ -294,7 +287,6 @@ stock_df.index = stock_df.index.strftime('%d/%m/%Y')
 
 macro_df = pd.concat([macro_df_fred, macro_df_commidities], axis=1)
 
-# Ensure the output directory exists
 output_dir = 'csv'
 os.makedirs(output_dir, exist_ok=True)
 stock_df.to_csv(f"{output_dir}/stock_df.csv", index=True)
@@ -321,11 +313,14 @@ print("Is there any nan value in index_df: ", index_df.isna().any().any())
 print("\n")
 
 
-output_dir = 'plots'
-composite_index_df = composite_index(stock_df, output_dir)
+
+equal_weighted_composite_index_df = equal_weighted_composite_index(stock_df)
+cap_weighted_composite_index_df = cap_weighted_composite_index(stock_df)
+
+equal_weighted_correlation_df = equal_weighted_correlation_plots(equal_weighted_composite_index_df, macro_df)
+cap_weighted_correlation_df = cap_weighted_correlation_plots(cap_weighted_composite_index_df, macro_df)
 
 
-#correlation_df = correlation_plots(composite_index_df, macro_df)
 
 '''
 # Ensure the output directory exists
