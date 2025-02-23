@@ -136,10 +136,9 @@ if __name__ == '__main__':
 
     for symbol in ticker_symbols:
         data_root = f"dataset/{symbol}"
-        config = f"config/reproduce_conf/RMoK/{symbol}_30for1.py"
+        args.config = f"config/reproduce_conf/RMoK/{symbol}_30for1.py"
 
         training_conf = {
-            "config": config,
             "seed": int(args.seed),
             "data_root": data_root,
             "save_root": args.save_root,
