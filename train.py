@@ -136,9 +136,10 @@ if __name__ == '__main__':
 
     for symbol in ticker_symbols:
         data_root = f"dataset/{symbol}"
-        config_file = f"config/reproduce_conf/RMoK/{symbol}_30for1.py"
+        config = f"config/reproduce_conf/RMoK/{symbol}_30for1.py"
 
         training_conf = {
+            "config": config,
             "seed": int(args.seed),
             "data_root": data_root,
             "save_root": args.save_root,
@@ -146,5 +147,5 @@ if __name__ == '__main__':
             "use_wandb": args.use_wandb,
         }
 
-        init_exp_conf = load_config(config_file)
+        init_exp_conf = load_config(args.config)
         train_func(training_conf, init_exp_conf)
