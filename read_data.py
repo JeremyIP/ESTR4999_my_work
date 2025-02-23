@@ -355,3 +355,38 @@ for stock in ticker_symbols:
     print(f"min shape: {min_val.shape} and max shape {max_val.shape}")
     print("Data successfully saved.")
     print("\n")
+
+
+# Template content
+template_content = """exp_conf = dict(
+    model_name="DenseRMoK",
+    dataset_name='{dataset}',     # Set to {dataset} to point to your new dataset
+
+    hist_len=60,
+    pred_len=1,
+
+    revin_affine=False,       # Retain other configurations as in ETTh1
+
+    lr=0.001,                 # Learning rate
+)
+"""
+
+# Directory for saving configuration files
+output_dir = '/config/reproduce_conf/RMoK'
+
+def generate_config_files():
+    """Generates configuration files for each stock symbol."""
+    # Create the output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
+    for symbol in ticker_symbols:
+        new_content = template_content.format(dataset=symbol)
+        new_file_name = os.path.join(output_dir, f"{symbol}_30for1.py")
+
+        with open(new_file_name, 'w') as new_file:
+            new_file.write(new_content)
+
+        print(f"Created configuration file: {new_file_name}")
+
+# Generate configuration files
+generate_config_files()

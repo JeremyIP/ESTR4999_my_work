@@ -118,49 +118,14 @@ def train_func(hyper_conf, conf):
     # model.plot_losses()
 
 
-# Directory for saving configuration files
-output_dir = '/config/reproduce_conf/RMoK'
 
-# Template content
-template_content = """exp_conf = dict(
-    model_name="DenseRMoK",
-    dataset_name='{dataset}',     # Set to {dataset} to point to your new dataset
 
-    hist_len=60,
-    pred_len=1,
-
-    revin_affine=False,       # Retain other configurations as in ETTh1
-
-    lr=0.001,                 # Learning rate
-)
-"""
-
-# List of ticker symbols
-ticker_symbols = [
-    'AAPL', 'MSFT', 'ORCL', 'AMD', 'CSCO', 'ADBE', 
-    'IBM', 'TXN', 'AMAT', 'MU', 'ADI', 'INTC', 
-    'LRCX', 'KLAC', 'MSI', 'GLW', 'HPQ', 'TYL', 
-    'PTC', 'WDC'
-]
-
-def generate_config_files():
-    """Generates configuration files for each stock symbol."""
-    os.makedirs(output_dir, exist_ok=True)  # Ensure the output directory exists
-
-    for symbol in ticker_symbols:
-        new_content = template_content.format(dataset=symbol)
-        new_file_name = os.path.join(output_dir, f"{symbol}_30for1.py")
-
-        with open(new_file_name, 'w') as new_file:
-            new_file.write(new_content)
-
-        print(f"Created configuration file: {new_file_name}")
-
+ticker_symbols = ['AAPL', 'MSFT', 'ORCL', 'AMD', 'CSCO', 'ADBE', 
+                  'IBM', 'TXN', 'AMAT', 'MU', 'ADI', 'INTC', 
+                  'LRCX', 'KLAC', 'MSI', 'GLW', 'HPQ', 'TYL', 
+                  'PTC', 'WDC']
 
 if __name__ == '__main__':
-    # Generate configuration files
-    generate_config_files()
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config", type=str)
     parser.add_argument("-d", "--data_root", default="dataset", type=str, help="data root")
@@ -169,14 +134,6 @@ if __name__ == '__main__':
     parser.add_argument("--use_wandb", default=0, type=int, help="use wandb")
     parser.add_argument("--seed", type=int, default=1, help="seed")
     args = parser.parse_args()
-
-    training_conf = {
-        "seed": int(args.seed),
-        "data_root": args.data_root,
-        "save_root": args.save_root,
-        "devices": args.devices,
-        "use_wandb": args.use_wandb,
-    }
 
     for symbol in ticker_symbols:
         data_root = f"/dataset/{symbol}"
