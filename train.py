@@ -119,7 +119,6 @@ def train_func(hyper_conf, conf):
 
 
 
-
 ticker_symbols = ['AAPL', 'MSFT', 'ORCL', 'AMD', 'CSCO', 'ADBE', 
                   'IBM', 'TXN', 'AMAT', 'MU', 'ADI', 'INTC', 
                   'LRCX', 'KLAC', 'MSI', 'GLW', 'HPQ', 'TYL', 
