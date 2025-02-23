@@ -135,8 +135,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     for symbol in ticker_symbols:
-        data_root = f"/dataset/{symbol}"
-        config_file = f"/config/reproduce_conf/RMoK/{symbol}_30for1.py"
+        data_root = f"dataset/{symbol}"
+        config_file = f"config/reproduce_conf/RMoK/{symbol}_30for1.py"
 
         training_conf = {
             "seed": int(args.seed),
