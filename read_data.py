@@ -354,5 +354,4 @@ for stock in ticker_symbols:
     print("norm_time_marker shape:", norm_time_marker.shape)
     print(f"min shape: {min_val.shape} and max shape {max_val.shape}")
     print("Data successfully saved.")
-    print("===================================")
     print("\n")
