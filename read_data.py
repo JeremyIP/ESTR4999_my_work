@@ -47,7 +47,7 @@ for ticker_symbol in ticker_symbols:
     # Rename columns to the desired format
     stock_data[ticker_symbol] = stock_series  # Store the smoothed data in the dictionary
 
-    
+    '''
     # Plot using mplfinance
     mpf.plot(stock_series,
              type='line',
@@ -58,6 +58,7 @@ for ticker_symbol in ticker_symbols:
              figsize=(10, 6))  # Set figure size
 
     print(f"Plot saved in the directory: {output_dir}/{ticker_symbol}_plot.png")
+    '''
     
 
 stock_df = pd.concat(stock_data, axis=1)
