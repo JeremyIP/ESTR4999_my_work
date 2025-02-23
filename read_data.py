@@ -352,7 +352,9 @@ for stock in ticker_symbols:
     # Save scaling information using min and max values
     np.savez(os.path.join(output_dir, f'{stock}_var_scaler_info.npz'), min=min_val.values, max=max_val.values)
 
+    combined_data.index = pd.to_datetime(combined_data.index, format='%d/%m/%Y')
     dates = combined_data.index
+
     norm_time_marker = np.stack([
         np.full(len(dates), 0.5),  # Time of day (fixed for daily data)
         dates.weekday / 4.0,        # Day of week (normalized)
