@@ -40,9 +40,11 @@ for ticker_symbol in ticker_symbols:
     
     stock_series.index = stock_series.index.tz_localize(None)  # Remove timezone
 
+    '''
     # Calculate the Simple Moving Average (SMA) for each feature
     for feature in ['Open', 'High', 'Low', 'Close', 'Volume']:
         stock_series[feature] = stock_series[feature].rolling(window=window).mean()
+    '''
 
     # Rename columns to the desired format
     stock_data[ticker_symbol] = stock_series  # Store the smoothed data in the dictionary
@@ -240,7 +242,7 @@ macro_df_commidities = macro_df_commidities.resample('D').ffill().ffill().bfill(
 
 
 
-ticker_symbols = ['^GSPC', '^SP500-45']  # S&P 500 Index and S&P 500 IT Sector Index
+ticker_symbols = ['^GSPC'] #, '^SP500-45']  # S&P 500 Index and S&P 500 IT Sector Index
 
 index_data = {}
 
@@ -256,9 +258,11 @@ for ticker_symbol in ticker_symbols:
     
     index_series.index = index_series.index.tz_localize(None)  # Remove timezone
 
+    '''
     # Calculate the Simple Moving Average (SMA) for each feature
     for feature in ['Open', 'High', 'Low', 'Close', 'Volume']:
         index_series[feature] = index_series[feature].rolling(window=window).mean()
+    '''
 
     # Rename columns to the desired format
     index_data[ticker_symbol] = index_series  # Store the smoothed data in the dictionary
@@ -314,44 +318,60 @@ print("Is there any nan value in index_df: ", index_df.isna().any().any())
 print("\n")
 
 
-
-equal_weighted_composite_index_df = equal_weighted_composite_index(stock_df)
 cap_weighted_composite_index_df = cap_weighted_composite_index(stock_df)
-
-equal_weighted_correlation_df = equal_weighted_correlation_plots(equal_weighted_composite_index_df, macro_df)
-cap_weighted_correlation_df = cap_weighted_correlation_plots(cap_weighted_composite_index_df, macro_df)
-
+top_k_correlations = cap_weighted_correlation_plots(cap_weighted_composite_index_df, macro_df, 10)
+print(top_k_correlations)
 
 
-'''
-# Ensure the output directory exists
-output_dir = 'dataset/MSFT'
-os.makedirs(output_dir, exist_ok=True)
+ticker_symbols = ['AAPL', 'MSFT', 'ORCL', 'AMD', 'CSCO', 'ADBE', 
+                  'IBM', 'TXN', 'AMAT', 'MU', 'ADI', 'INTC', 
+                  'LRCX', 'KLAC', 'MSI', 'GLW', 'HPQ', 'TYL', 
+                  'PTC', 'WDC']
 
-# Save scaling information
-np.savez(os.path.join(output_dir, 'var_scaler_info.npz'))
 
-dates = combined_data.index
-norm_time_marker = np.stack([
-    np.full(len(dates), 0.5),  # Time of day (fixed for daily data)
-    dates.weekday / 4.0,        # Day of week (normalized)
-    (dates.day - 1) / (dates.to_series().groupby(dates.to_period("M")).transform("count") - 1),  # Day of month
-    (dates.dayofyear - 1) / (dates.to_series().groupby(dates.to_period("Y")).transform("count") - 1)  # Day of year
-], axis=1)
+for stock in ticker_symbols:
+    
+    stock_indicators = stock_indicators_df.xs(stock, level=0, axis=1)
+    stock_data = stock_df.xs(stock, level=0, axis=1)
 
-# Save the final combined data and normalized time markers
-np.savez(os.path.join(output_dir, 'feature.npz'), norm_var=combined_data.values, norm_time_marker=norm_time_marker)
+    combined_data = pd.concat([
+        index_df,
+        stock_indicators,
+        stock_data,
+        macro_df[top_k_correlations.index[1:]]  
+    ], axis=1)
 
-# Verify shapes
-print("Final combined data shape:", combined_data.shape)  # Should have OHLCV + macro + new indicators columns
-print("norm_time_marker shape:", norm_time_marker.shape)
-print(f"mean shape: {mean.shape} and std shape {std.shape}")
-print(f"mean value: \n {mean}")
-print(f"std value: \n {std}")
-print("First 10 rows of the downloaded data:")
-print(combined_data.head(10))
-print("Last 10 rows of the downloaded data:")
-print(combined_data.tail(10))
-print("Data successfully saved.")
+    # Calculate min and max across all columns for min-max normalization
+    min_val = combined_data.min()
+    max_val = combined_data.max()
 
-'''
+    # Ensure the output directory exists
+    output_dir = 'dataset/MSFT'
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Save scaling information using min and max values
+    np.savez(os.path.join(output_dir, f'{stock}_var_scaler_info.npz'), min=min_val.values, max=max_val.values)
+
+    dates = combined_data.index
+    norm_time_marker = np.stack([
+        np.full(len(dates), 0.5),  # Time of day (fixed for daily data)
+        dates.weekday / 4.0,        # Day of week (normalized)
+        (dates.day - 1) / (dates.to_series().groupby(dates.to_period("M")).transform("count") - 1),  # Day of month
+        (dates.dayofyear - 1) / (dates.to_series().groupby(dates.to_period("Y")).transform("count") - 1)  # Day of year
+    ], axis=1)
+
+    # Save the final combined data and normalized time markers
+    np.savez(os.path.join(output_dir, f'{stock}_feature.npz'), norm_var=combined_data.values, norm_time_marker=norm_time_marker)
+
+    # Verify shapes
+    print("Final combined data contains NaN?:", combined_data.isna().any().any())
+    print("Final combined data shape:", combined_data.shape)  
+    print("norm_time_marker shape:", norm_time_marker.shape)
+    print(f"min shape: {min_val.shape} and max shape {max_val.shape}")
+    print(f"min value: \n {min_val}")
+    print(f"max value: \n {max_val}")
+    print("First 10 rows of the downloaded data:")
+    print(combined_data.head(10))
+    print("Last 10 rows of the downloaded data:")
+    print(combined_data.tail(10))
+    print("Data successfully saved.")
