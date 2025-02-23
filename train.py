@@ -135,6 +135,14 @@ template_content = """exp_conf = dict(
 )
 """
 
+# List of ticker symbols
+ticker_symbols = [
+    'AAPL', 'MSFT', 'ORCL', 'AMD', 'CSCO', 'ADBE', 
+    'IBM', 'TXN', 'AMAT', 'MU', 'ADI', 'INTC', 
+    'LRCX', 'KLAC', 'MSI', 'GLW', 'HPQ', 'TYL', 
+    'PTC', 'WDC'
+]
+
 def generate_config_files():
     """Generates configuration files for each stock symbol."""
     os.makedirs(output_dir, exist_ok=True)  # Ensure the output directory exists
@@ -153,14 +161,6 @@ if __name__ == '__main__':
     # Generate configuration files
     generate_config_files()
 
-    # List of ticker symbols
-    ticker_symbols = [
-        'AAPL', 'MSFT', 'ORCL', 'AMD', 'CSCO', 'ADBE', 
-        'IBM', 'TXN', 'AMAT', 'MU', 'ADI', 'INTC', 
-        'LRCX', 'KLAC', 'MSI', 'GLW', 'HPQ', 'TYL', 
-        'PTC', 'WDC'
-    ]
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config", type=str)
     parser.add_argument("-d", "--data_root", default="dataset", type=str, help="data root")
@@ -177,7 +177,7 @@ if __name__ == '__main__':
         "devices": args.devices,
         "use_wandb": args.use_wandb,
     }
-    
+
     for symbol in ticker_symbols:
         data_root = f"/dataset/{symbol}"
         config_file = f"/config/reproduce_conf/RMoK/{symbol}_30for1.py"
