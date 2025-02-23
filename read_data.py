@@ -300,27 +300,9 @@ macro_df.to_csv(f"{output_dir}/macro_df.csv", index=True)
 index_df.to_csv(f"{output_dir}/index_df.csv", index=True)
 
 
-
-print("Shape of stock_df: ", stock_df.shape)
-print("Is there any nan value in stock_df: ", stock_df.isna().any().any())
-print("\n")
-
-print("Shape of stock_indicators_df: ", stock_indicators_df.shape)
-print("Is there any nan value in stock_indicators_df: ", stock_indicators_df.isna().any().any())
-print("\n")
-
-print("Shape of macro_df: ", macro_df.shape)
-print("Is there any nan value in macro_df: ", macro_df.isna().any().any())
-print("\n")
-
-print("Shape of index_df: ", index_df.shape)
-print("Is there any nan value in index_df: ", index_df.isna().any().any())
-print("\n")
-
-
 cap_weighted_composite_index_df = cap_weighted_composite_index(stock_df)
 top_k_correlations = cap_weighted_correlation_plots(cap_weighted_composite_index_df, macro_df, 10)
-print(top_k_correlations)
+
 
 
 ticker_symbols = ['AAPL', 'MSFT', 'ORCL', 'AMD', 'CSCO', 'ADBE', 
@@ -366,14 +348,11 @@ for stock in ticker_symbols:
     np.savez(os.path.join(output_dir, f'{stock}_feature.npz'), norm_var=combined_data.values, norm_time_marker=norm_time_marker)
 
     # Verify shapes
+    print("Stock:", stock)
     print("Final combined data contains NaN?:", combined_data.isna().any().any())
     print("Final combined data shape:", combined_data.shape)  
     print("norm_time_marker shape:", norm_time_marker.shape)
     print(f"min shape: {min_val.shape} and max shape {max_val.shape}")
-    print(f"min value: \n {min_val}")
-    print(f"max value: \n {max_val}")
-    print("First 10 rows of the downloaded data:")
-    print(combined_data.head(10))
-    print("Last 10 rows of the downloaded data:")
-    print(combined_data.tail(10))
     print("Data successfully saved.")
+    print("===================================")
+    print("\n")

@@ -17,7 +17,6 @@ def cap_weighted_composite_index(stock_df):
 
     # Calculate the weights based on the total market value
     weights = total_market_value / total_market_value.sum()
-    print("weights", weights)
 
     # Calculate the weighted composite index as the weighted sum of stock prices
     cap_weighted_composite_index = (closing_prices * weights).sum(axis=1)
