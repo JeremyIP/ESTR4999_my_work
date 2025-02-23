@@ -328,11 +328,11 @@ for stock in ticker_symbols:
     max_val = combined_data.max()
 
     # Ensure the output directory exists
-    output_dir = 'dataset/MSFT'
+    output_dir = f"dataset/{stock}"
     os.makedirs(output_dir, exist_ok=True)
 
     # Save scaling information using min and max values
-    np.savez(os.path.join(output_dir, f'{stock}_var_scaler_info.npz'), min=min_val.values, max=max_val.values)
+    np.savez(os.path.join(output_dir, f'var_scaler_info.npz'), min=min_val.values, max=max_val.values)
 
     combined_data.index = pd.to_datetime(combined_data.index, format='%d/%m/%Y')
     dates = combined_data.index
@@ -345,7 +345,7 @@ for stock in ticker_symbols:
     ], axis=1)
 
     # Save the final combined data and normalized time markers
-    np.savez(os.path.join(output_dir, f'{stock}_feature.npz'), norm_var=combined_data.values, norm_time_marker=norm_time_marker)
+    np.savez(os.path.join(output_dir, f'feature.npz'), norm_var=combined_data.values, norm_time_marker=norm_time_marker)
 
     # Verify shapes
     print("Stock:", stock)
