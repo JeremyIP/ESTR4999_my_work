@@ -54,7 +54,7 @@ Illness_conf = dict(
     data_split=[676, 97, 193],
 )
 
-# Microsoft Corporation (MSFT)
+
 MSFT_conf = dict(
     dataset_name='MSFT',
     var_num=13,                   
@@ -65,7 +65,6 @@ MSFT_conf = dict(
 
 )
 
-# Microsoft Corporation (MSFT)
 AAPL_conf = dict(
     dataset_name='AAPL',
     var_num=13,                   
