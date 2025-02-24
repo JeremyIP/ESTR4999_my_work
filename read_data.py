@@ -327,8 +327,6 @@ for stock in ticker_symbols:
     min_val = combined_data.min()
     max_val = combined_data.max()
 
-    combined_data.to_csv("/Users/jeremyity/Downloads/combined.csv", index=True)
-
     # Ensure the output directory exists
     output_dir = f"dataset/{stock}"
     os.makedirs(output_dir, exist_ok=True)
