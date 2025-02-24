@@ -92,7 +92,7 @@ class RevIN(nn.Module):
 
 
 class DenseRMoK(nn.Module):
-    def __init__(self, hist_len, pred_len, var_num, num_experts=4, drop=0.5, revin_affine=True):
+    def __init__(self, hist_len, pred_len, var_num, num_experts=4, drop=0.1, revin_affine=True):
         super(DenseRMoK, self).__init__()
         self.hist_len = hist_len
         self.pred_len = pred_len

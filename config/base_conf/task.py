@@ -6,8 +6,8 @@ task_conf = dict(
     hist_len=60,
     pred_len=1,
 
-    batch_size=8,
-    max_epochs=20,
+    batch_size=20,
+    max_epochs=30,
     #lr=0.0001,
     lr=0.0001,
     optimizer="AdamW",
