@@ -301,7 +301,7 @@ index_df.to_csv(f"{output_dir}/index_df.csv", index=True)
 
 
 cap_weighted_composite_index_df = cap_weighted_composite_index(stock_df)
-top_k_correlations = cap_weighted_correlation_plots(cap_weighted_composite_index_df, macro_df, 10)
+top_k_correlations = cap_weighted_correlation_plots(cap_weighted_composite_index_df, macro_df, k=10)
 
 
 
@@ -326,6 +326,8 @@ for stock in ticker_symbols:
     # Calculate min and max across all columns for min-max normalization
     min_val = combined_data.min()
     max_val = combined_data.max()
+
+    combined_data.to_csv("/Users/jeremyity/Downloads/combined.csv", index=True)
 
     # Ensure the output directory exists
     output_dir = f"dataset/{stock}"

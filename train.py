@@ -13,6 +13,8 @@ from core.ltsf_runner import LTSFRunner
 from core.util import cal_conf_hash
 from core.util import load_module_from_path
 
+from genetic import *
+
 # Modified Code to invoke call back to print the loss per epoch
 from lightning.pytorch.callbacks import Callback
 class TrainLossLoggerCallback(Callback):
@@ -145,4 +147,58 @@ if __name__ == '__main__':
         }
 
         init_exp_conf = load_config(args.config)
+        '''
+        # Run the genetic algorithm
+        total_generations=2
+        pop_size=20
+        n_features = 50
+        n_hyperparameters = 11
+        fg = [0, 0] # fitness value
+        mutation_rate = [0.1]
+
+        for g in range(total_generations):
+
+            population = initialize_population(pop_size)  
+
+            ch1, ch2 = random.sample(population, 2)
+
+            if (g == (total_generations//2)) or ((fg[-1]-fg[-2]) == 0) == 1:
+                ch1 = intra_chromosome_crossover(ch1, n_features, n_hyperparameters)
+
+            ch1, ch2 = inter_chromosome_crossover(ch1, ch2, n_features, n_hyperparameters)
+
+            # Calculate increment
+            increment = 100 * mutation_rate[g+1] / (fg[-1] - fg[-2]) # TO DO + ???
+
+            if increment > 0:
+                mutation_rate[g+1] += increment
+            else:
+                mutation_rate[g+1] -= increment
+
+            mutation_rate[g+1] = mutation_rate[g] if (mutation_rate[g+1]>=1) or (mutation_rate[g+1]<=0) else mutation_rate[g+1]
+
+            # Apply mutation
+            of1 = apply_mutation(ch1, mutation_rate[g+1], n_features, n_hyperparameters)
+            of2 = apply_mutation(ch2, mutation_rate[g+1], n_features, n_hyperparameters)
+
+            # Evaluate fitness
+            of1.fitness = of1.evaluate_fitness()
+            of2.fitness = of2.evaluate_fitness()
+
+            # Select the fittest offspring
+            population.append(max(of1, of2, key=lambda x: x.fitness))
+
+            # Keep only the best individuals for the next generation
+            population.sort(key=lambda x: x.fitness, reverse=True)
+            population = population[:pop_size]
+
+            # Output optimal features and KAN hyper-parameters
+            best_chromosome = max(population, key=lambda x: x.fitness)
+            best_chromosome.genes   
+                       
+            print("Optimal features and KAN hyper-parameters:", optimal_features)
+            '''
+
+        # TO DO ////// Update config with optimal features
         train_func(training_conf, init_exp_conf)
+
