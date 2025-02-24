@@ -7,7 +7,7 @@ task_conf = dict(
     pred_len=1,
 
     batch_size=8,
-    max_epochs=50,
+    max_epochs=20,
     #lr=0.0001,
     lr=0.0001,
     optimizer="AdamW",
