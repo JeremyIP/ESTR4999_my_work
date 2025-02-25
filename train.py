@@ -170,6 +170,7 @@ if __name__ == '__main__':
         print("Best Solution found:", best_solution)
 
         training_conf["features_mask"] = best_solution.genes["features"]
+        print(training_conf["features_mask"])
         trainer, data_module, model = train_init(training_conf, init_exp_conf)
         train_func(trainer, data_module, model)
 
