@@ -22,7 +22,7 @@ def decode(ind):
 
     return window_size, WaveKAN, NaiveFourierKAN, JacobiKAN, ChebyKAN, TaylorKAN, RBFKAN
 
-def fitness_function(ind, trainer, data_module, model):
+def fitness_function(ind, trainer=None, data_module=None, model=None):
     # TO DO // Connect Trainer, data_module, model
 
     selected_list = ind.genes['features'] 
@@ -145,7 +145,7 @@ def genetic_algorithm(population_size, total_generations, n_features, n_hyperpar
 
         # Store the best performer of the current generation
         best_individual = max(population, key=fitness_function)
-        best_fitness = fitness_function(best_individual)
+        best_fitness = fitness_function(best_individual, trainer, data_module, model)
         best_performers.append((best_individual, best_fitness))
         all_populations.append(population[:])
         table.add_row([generation + 1, "".join(map(str, best_individual.genes['features'])), "".join(map(str, best_individual.genes['hyperparameters'])), best_fitness])
@@ -190,15 +190,15 @@ def genetic_algorithm(population_size, total_generations, n_features, n_hyperpar
 
     # Plot the population of one generation (last generation)
     final_population = all_populations[-1]
-    final_fitnesses = [fitness_function(ind) for ind in final_population]
+    final_fitnesses = [fitness_function(ind, trainer, data_module, model) for ind in final_population]
 
     # Plot the values of a, b, and c over generations
     generations_list = range(1, len(best_performers) + 1)
 
     # Plot the fitness values over generations
     best_fitness_values = [fit[1] for fit in best_performers]
-    min_fitness_values = [min([fitness_function(ind) for ind in population]) for population in all_populations]
-    max_fitness_values = [max([fitness_function(ind) for ind in population]) for population in all_populations]
+    min_fitness_values = [min([fitness_function(ind, trainer, data_module, model) for ind in population]) for population in all_populations]
+    max_fitness_values = [max([fitness_function(ind, trainer, data_module, model) for ind in population]) for population in all_populations]
     fig, ax = plt.subplots()
     ax.plot(generations_list, best_fitness_values, label='Best Fitness', color='black')
     ax.fill_between(generations_list, min_fitness_values, max_fitness_values, color='gray', alpha=0.5, label='Fitness Range')
@@ -206,8 +206,8 @@ def genetic_algorithm(population_size, total_generations, n_features, n_hyperpar
     ax.set_ylabel('Fitness')
     ax.set_title('Fitness Over Generations')
     ax.legend()
-
-    plt.show()
+    plt.savefig('plots/GA.png')
 
     return max(population, key=fitness_function)
+
 
