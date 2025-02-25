@@ -32,7 +32,7 @@ def fitness_function(ind, trainer, data_module, model):
 
     window_size, WaveKAN, NaiveFourierKAN, JacobiKAN, ChebyKAN, TaylorKAN, RBFKAN = decode(ind)
     
-    return # TO DO // Actual Loss
+    return 1 # TO DO // Actual Loss
 
 def create_initial_population(population_size):
     # Initialize a population of chromosomes with random values
