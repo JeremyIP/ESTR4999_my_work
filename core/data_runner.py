@@ -11,7 +11,7 @@ class GeneralTSFDataset(Dataset):
     General TSF Dataset.
     """
 
-    def __init__(self, data_root, dataset_name, hist_len, pred_len, data_split, freq, mode):
+    def __init__(self, data_root, dataset_name, hist_len, pred_len, data_split, freq, mode, features_mask):
         #self.data_dir = os.path.join(data_root, dataset_name)
         self.data_dir = data_root
         self.hist_len = hist_len
@@ -26,14 +26,19 @@ class GeneralTSFDataset(Dataset):
         self.set_type = mode_map[mode]
         self.var, self.time_marker = self.__read_data__()
 
+        self.features_mask = features_mask
+
     def __read_data__(self):
         norm_feature_path = os.path.join(self.data_dir, 'feature.npz')
         norm_feature = np.load(norm_feature_path)
 
-        norm_var = norm_feature['norm_var']
-
-        print("Raw norm_var first 10 rows:", norm_var[:10, :])
-        print("Raw data shape:", norm_var.shape)
+        #norm_var = norm_feature['norm_var']
+        norm_var = norm_feature['norm_var'][np.array(self.features_mask).astype(bool)]
+        
+        print("Original:", norm_feature['norm_var'])
+        print("Mask:", self.features_mask)
+        print("Masked data shape:", norm_var.shape)
+        print("After:", norm_var[:10, :])
 
         norm_time_marker = norm_feature['norm_time_marker']
 
@@ -81,6 +86,7 @@ def data_provider(config, mode):
         data_split=config['data_split'],
         freq=config['freq'],
         mode=mode,
+        features_mask=config['features_mask'],
     )
 
 
