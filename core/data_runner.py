@@ -18,6 +18,7 @@ class GeneralTSFDataset(Dataset):
         self.pred_len = pred_len
         self.train_len, self.val_len, self.test_len = data_split
         self.freq = freq
+        self.features_mask = features_mask
 
         self.mode = mode
         assert mode in ['train', 'valid', 'test'], "mode {} mismatch, should be in [train, valid, test]".format(mode)
@@ -26,7 +27,7 @@ class GeneralTSFDataset(Dataset):
         self.set_type = mode_map[mode]
         self.var, self.time_marker = self.__read_data__()
 
-        self.features_mask = features_mask
+        
 
     def __read_data__(self):
         norm_feature_path = os.path.join(self.data_dir, 'feature.npz')
