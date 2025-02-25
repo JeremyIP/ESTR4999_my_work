@@ -34,7 +34,7 @@ class GeneralTSFDataset(Dataset):
         norm_feature = np.load(norm_feature_path)
 
         #norm_var = norm_feature['norm_var']
-        norm_var = norm_feature['norm_var'][np.array(self.features_mask).astype(bool)]
+        norm_var = norm_feature['norm_var'][:, np.array(self.features_mask).astype(bool)]
         
         print("Original:", norm_feature['norm_var'])
         print("Mask:", self.features_mask)
