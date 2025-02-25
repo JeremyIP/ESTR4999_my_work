@@ -58,7 +58,7 @@ AAPL_conf = dict(
     dataset_name='AAPL',
     var_num=50,
     freq=1440,
-    data_split=[200, 0, 124]
+    data_split=[2000, 0, 500]
 )
 
 ADBE_conf = dict(
