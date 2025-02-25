@@ -154,7 +154,9 @@ if __name__ == '__main__':
         total_generations = 10
         n_features = 50
         n_hyperparameters = 11
-        
+
+        trainer, data_module, model = train_init(training_conf, init_exp_conf)
+
         # Run the genetic algorithm
         best_solution = genetic_algorithm(population_size, total_generations, n_features, n_hyperparameters, trainer, data_module, model)
         print("Best Solution found:", best_solution)
@@ -168,7 +170,6 @@ if __name__ == '__main__':
             "features_mask": best_solution.genes["features"]
         }
 
-        trainer, data_module, model = train_init(training_conf, init_exp_conf)
         train_func(trainer, data_module, model)
 
         
