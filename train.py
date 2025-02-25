@@ -2,6 +2,7 @@ import argparse
 import importlib
 import importlib.util
 import os
+import re
 import subprocess
 
 import lightning.pytorch as L
@@ -13,7 +14,7 @@ from core.ltsf_runner import LTSFRunner
 from core.util import cal_conf_hash
 from core.util import load_module_from_path
 
-from genetic import *
+from genetic import genetic_algorithm
 
 # Modified Code to invoke call back to print the loss per epoch
 from lightning.pytorch.callbacks import Callback
@@ -64,7 +65,7 @@ def load_config(exp_conf_path):
     return fused_conf
 
 
-def train_func(hyper_conf, conf):
+def train_init(hyper_conf, conf):
     if hyper_conf is not None:
         for k, v in hyper_conf.items():
             conf[k] = v
@@ -112,12 +113,14 @@ def train_func(hyper_conf, conf):
     data_module = DataInterface(**conf)
     model = LTSFRunner(**conf)
 
+    return trainer, data_module, model
+
+def train_func(trainer, data_module, model):
     trainer.fit(model=model, datamodule=data_module)
     #trainer.test(model, datamodule=data_module, ckpt_path='best')
     trainer.test(model, datamodule=data_module)
 
-
-    # model.plot_losses()
+    model.plot_losses()
 
 
 
@@ -135,70 +138,38 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     for symbol in ticker_symbols:
-        data_root = f"dataset/{symbol}"
-        args.config = f"config/reproduce_conf/RMoK/{symbol}_30for1.py"
+        
+        # Using regular expressions to match the pattern _{int}for{int}.py
+        pattern = re.compile(rf"{symbol}_(\d+)for(\d+)\.py")
+        matching_files = [config_file for config_file in os.listdir("config/reproduce_conf/RMoK/") if pattern.match(config_file)]
+        
+        if matching_files:
+            args.config = f"config/reproduce_conf/RMoK/{matching_files[0]}"
+        else:
+            print(f"No matching config file found for {symbol}.")
+
+        init_exp_conf = load_config(args.config)
 
         training_conf = {
             "seed": int(args.seed),
-            "data_root": data_root,
+            "data_root": f"dataset/{symbol}",
             "save_root": args.save_root,
             "devices": args.devices,
             "use_wandb": args.use_wandb,
         }
 
-        init_exp_conf = load_config(args.config)
-        '''
-        # Run the genetic algorithm
-        total_generations=2
-        pop_size=20
+        trainer, data_module, model = train_init(training_conf, init_exp_conf)
+
+        population_size = 10
+        total_generations = 10
         n_features = 50
         n_hyperparameters = 11
-        fg = [0, 0] # fitness value
-        mutation_rate = [0.1]
+        
+        # Run the genetic algorithm
+        best_solution = genetic_algorithm(population_size, total_generations, n_features, n_hyperparameters, trainer, data_module, model)
+        print("Best Solution found:", best_solution)
 
-        for g in range(total_generations):
+        
 
-            population = initialize_population(pop_size)  
-
-            ch1, ch2 = random.sample(population, 2)
-
-            if (g == (total_generations//2)) or ((fg[-1]-fg[-2]) == 0) == 1:
-                ch1 = intra_chromosome_crossover(ch1, n_features, n_hyperparameters)
-
-            ch1, ch2 = inter_chromosome_crossover(ch1, ch2, n_features, n_hyperparameters)
-
-            # Calculate increment
-            increment = 100 * mutation_rate[g+1] / (fg[-1] - fg[-2]) # TO DO + ???
-
-            if increment > 0:
-                mutation_rate[g+1] += increment
-            else:
-                mutation_rate[g+1] -= increment
-
-            mutation_rate[g+1] = mutation_rate[g] if (mutation_rate[g+1]>=1) or (mutation_rate[g+1]<=0) else mutation_rate[g+1]
-
-            # Apply mutation
-            of1 = apply_mutation(ch1, mutation_rate[g+1], n_features, n_hyperparameters)
-            of2 = apply_mutation(ch2, mutation_rate[g+1], n_features, n_hyperparameters)
-
-            # Evaluate fitness
-            of1.fitness = of1.evaluate_fitness()
-            of2.fitness = of2.evaluate_fitness()
-
-            # Select the fittest offspring
-            population.append(max(of1, of2, key=lambda x: x.fitness))
-
-            # Keep only the best individuals for the next generation
-            population.sort(key=lambda x: x.fitness, reverse=True)
-            population = population[:pop_size]
-
-            # Output optimal features and KAN hyper-parameters
-            best_chromosome = max(population, key=lambda x: x.fitness)
-            best_chromosome.genes   
-                       
-            print("Optimal features and KAN hyper-parameters:", optimal_features)
-            '''
-
-        # TO DO ////// Update config with optimal features
-        train_func(training_conf, init_exp_conf)
+        trainer, data_module, model = train_init(training_conf, init_exp_conf) # Train final optimal model
 

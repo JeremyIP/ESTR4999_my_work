@@ -32,7 +32,8 @@ class GeneralTSFDataset(Dataset):
 
         norm_var = norm_feature['norm_var']
 
-        #print("Raw norm_var first 10 rows:", norm_var[:10, :])
+        print("Raw norm_var first 10 rows:", norm_var[:10, :])
+        print("Raw data shape:", norm_var.shape)
 
         norm_time_marker = norm_feature['norm_time_marker']
 
