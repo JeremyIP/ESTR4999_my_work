@@ -155,8 +155,8 @@ if __name__ == '__main__':
             "data_root": f"dataset/{symbol}",
             "save_root": args.save_root,
             "devices": args.devices,
-            "use_wandb": args.use_wandb, 
-            "features_mask":[]
+            "use_wandb": args.use_wandb
+            #, "features_mask":[]
         }
 
         ''' # TO DO ///
@@ -178,4 +178,5 @@ if __name__ == '__main__':
         '''
         
         trainer, data_module, model = train_init(training_conf, init_exp_conf) # Train final optimal model
+        train_func(trainer, data_module, model)
         
