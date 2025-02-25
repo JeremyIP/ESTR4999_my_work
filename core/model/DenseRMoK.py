@@ -92,13 +92,13 @@ class RevIN(nn.Module):
 
 
 class DenseRMoK(nn.Module):
-    def __init__(self, hist_len, pred_len, features_mask, var_num, num_experts=2, drop=0.1, revin_affine=True):
+    def __init__(self, hist_len, pred_len, var_num, num_experts=2, drop=0.1, revin_affine=True):
         super(DenseRMoK, self).__init__()
         self.hist_len = hist_len
         self.pred_len = pred_len
-        self.features_mask = features_mask
-        #self.var_num = var_num 
-        self.var_num = sum(features_mask)
+        #self.features_mask = features_mask
+        self.var_num = var_num 
+        #self.var_num = var_num if features_mask==[] else sum(features_mask)
         self.num_experts = num_experts
         self.drop = drop
         self.revin_affine = revin_affine

@@ -11,14 +11,14 @@ class GeneralTSFDataset(Dataset):
     General TSF Dataset.
     """
 
-    def __init__(self, data_root, dataset_name, hist_len, pred_len, data_split, freq, mode, features_mask):
+    def __init__(self, data_root, dataset_name, hist_len, pred_len, data_split, freq, mode): # , features_mask):
         #self.data_dir = os.path.join(data_root, dataset_name)
         self.data_dir = data_root
         self.hist_len = hist_len
         self.pred_len = pred_len
         self.train_len, self.val_len, self.test_len = data_split
         self.freq = freq
-        self.features_mask = features_mask
+        #self.features_mask = features_mask
 
         self.mode = mode
         assert mode in ['train', 'valid', 'test'], "mode {} mismatch, should be in [train, valid, test]".format(mode)
@@ -33,8 +33,8 @@ class GeneralTSFDataset(Dataset):
         norm_feature_path = os.path.join(self.data_dir, 'feature.npz')
         norm_feature = np.load(norm_feature_path)
 
-        #norm_var = norm_feature['norm_var']
-        norm_var = norm_feature['norm_var'][:, np.array(self.features_mask).astype(bool)]
+        norm_var = norm_feature['norm_var']
+        #norm_var = norm_feature['norm_var'][:, np.array(self.features_mask).astype(bool)]
     
         norm_time_marker = norm_feature['norm_time_marker']
 
