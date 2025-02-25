@@ -81,8 +81,8 @@ def data_provider(config, mode):
         pred_len=config['pred_len'],
         data_split=config['data_split'],
         freq=config['freq'],
-        mode=mode,
-        features_mask=config['features_mask'],
+        mode=mode
+        #,features_mask=config['features_mask'],
     )
 
 
