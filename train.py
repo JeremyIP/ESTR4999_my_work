@@ -159,7 +159,10 @@ if __name__ == '__main__':
         }
 
         trainer, data_module, model = train_init(training_conf, init_exp_conf)
+        train_func(trainer, data_module, model)
 
+        
+        '''
         population_size = 10
         total_generations = 10
         n_features = 50
@@ -169,7 +172,7 @@ if __name__ == '__main__':
         best_solution = genetic_algorithm(population_size, total_generations, n_features, n_hyperparameters, trainer, data_module, model)
         print("Best Solution found:", best_solution)
 
-        
+
 
         trainer, data_module, model = train_init(training_conf, init_exp_conf) # Train final optimal model
-
+        '''
