@@ -155,21 +155,22 @@ if __name__ == '__main__':
         n_features = 50
         n_hyperparameters = 11
 
+        training_conf = {
+            "seed": int(args.seed),
+            "data_root": f"dataset/{symbol}",
+            "save_root": args.save_root,
+            "devices": args.devices,
+            "use_wandb": args.use_wandb
+        }
+
         trainer, data_module, model = train_init(training_conf, init_exp_conf)
 
         # Run the genetic algorithm
         best_solution = genetic_algorithm(population_size, total_generations, n_features, n_hyperparameters, trainer, data_module, model)
         print("Best Solution found:", best_solution)
 
-        training_conf = {
-            "seed": int(args.seed),
-            "data_root": f"dataset/{symbol}",
-            "save_root": args.save_root,
-            "devices": args.devices,
-            "use_wandb": args.use_wandb,
-            "features_mask": best_solution.genes["features"]
-        }
-
+        training_conf["features_mask"] = best_solution.genes["features"]
+        trainer, data_module, model = train_init(training_conf, init_exp_conf)
         train_func(trainer, data_module, model)
 
         
