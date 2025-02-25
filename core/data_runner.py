@@ -35,12 +35,7 @@ class GeneralTSFDataset(Dataset):
 
         #norm_var = norm_feature['norm_var']
         norm_var = norm_feature['norm_var'][:, np.array(self.features_mask).astype(bool)]
-        
-        print("Original:", norm_feature['norm_var'])
-        print("Mask:", self.features_mask)
-        print("Masked data shape:", norm_var.shape)
-        print("After:", norm_var[:10, :])
-
+    
         norm_time_marker = norm_feature['norm_time_marker']
 
         border1s = [0, self.train_len, self.train_len + self.val_len]
