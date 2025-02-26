@@ -242,6 +242,7 @@ class LTSFRunner(L.LightningModule):
                 model_args_instance[arg] = getattr(self.hparams, arg)
         return Model(**model_args_instance)
 
+'''
     def inverse_transform_var(self, data):
         return (data * self.std) + self.mean
 
@@ -255,7 +256,7 @@ class LTSFRunner(L.LightningModule):
             time_marker[..., -1] = time_marker[..., -1] * self.hparams.max_event_per_day
 
         return time_marker
-
+'''
     # def plot_losses(self):
     #     # Plot the loss values after training is complete
     #     plt.figure(figsize=(10, 5))

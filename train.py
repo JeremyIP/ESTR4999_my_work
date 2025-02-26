@@ -137,7 +137,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     for symbol in ticker_symbols:
-
         # Before GA
         args.dataset_name = symbol
 
@@ -149,7 +148,7 @@ if __name__ == '__main__':
         args.freq = 1440 # TO DO ///
         args.data_split = [2000, 0, 500]
         
-        conf = vars(args)
+        
         
         training_conf = {
             "seed": int(args.seed),
@@ -159,6 +158,7 @@ if __name__ == '__main__':
             "use_wandb": args.use_wandb
         }
 
+        conf = vars(args)
         trainer, data_module, model = train_init(training_conf, conf) 
         train_func(trainer, data_module, model)
         
