@@ -134,7 +134,6 @@ ticker_symbols = ['AAPL']
 #, 'MSFT', 'ORCL', 'AMD', 'CSCO', 'ADBE', 'IBM', 'TXN', 'AMAT', 'MU', 'ADI', 'INTC', 'LRCX', 'KLAC', 'MSI', 'GLW', 'HPQ', 'TYL', 'PTC', 'WDC']
 
 if __name__ == '__main__':
-    import argparse
 
     parser = argparse.ArgumentParser()
 
@@ -190,6 +189,7 @@ if __name__ == '__main__':
         args.freq = 1440 # TO DO ///
         args.data_split = [2000, 0, 500]
         
+        conf = {**args}
         
 
         # init_exp_conf = load_config(args.config)
@@ -221,7 +221,7 @@ if __name__ == '__main__':
         trainer, data_module, model = train_init(training_conf, init_exp_conf)
         train_func(trainer, data_module, model)
         '''
-        trainer, data_module, model = train_init(training_conf, args) 
+        trainer, data_module, model = train_init(training_conf, conf) 
         train_func(trainer, data_module, model)
         #trainer, data_module, model = train_init(training_conf, init_exp_conf) # Train final optimal model
         
