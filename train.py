@@ -162,7 +162,7 @@ def genetic_algorithm(training_conf, conf):
 
     for generation in range(conf['total_generations']):
 
-        _ = [ind.fitness_function(ind, training_conf, conf) for ind in population]
+        _ = [fitness_function(ind, training_conf, conf) for ind in population]
 
         # Store the best performer of the current generation
         best_individual = max(population, key=lambda ch: ch.fitness)
