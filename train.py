@@ -36,6 +36,7 @@ class TrainLossLoggerCallback(Callback):
             # Print the average loss for the epoch
             print(f"Epoch {trainer.current_epoch + 1}: Average Train Loss = {avg_loss.item():.4f}")
 
+'''
     def on_train_end(self, trainer, pl_module):
         """
         Called at the end of training.
@@ -44,28 +45,7 @@ class TrainLossLoggerCallback(Callback):
         print("\nTraining Loss per Epoch:")
         for epoch, loss in enumerate(self.train_losses, 1):
             print(f"Epoch {epoch}: {loss:.4f}")
-
-
 '''
-def load_config(exp_conf_path):
-    # 加载 exp_conf
-    exp_conf = load_module_from_path("exp_conf", exp_conf_path).exp_conf
-
-    # 加载 task_conf
-    task_conf_module = importlib.import_module('config.base_conf.task')
-    task_conf = task_conf_module.task_conf
-
-    # 加载 data_conf
-    data_conf_module = importlib.import_module('config.base_conf.datasets')
-    data_conf = eval('data_conf_module.{}_conf'.format(exp_conf['dataset_name']))
-
-    # conf 融合，参数优先级: exp_conf > task_conf = data_conf
-    fused_conf = {**task_conf, **data_conf}
-    fused_conf.update(exp_conf)
-
-    return fused_conf
-'''
-
 
 def train_init(hyper_conf, conf):
     if hyper_conf is not None:
@@ -133,7 +113,6 @@ ticker_symbols = ['AAPL']
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-
     parser.add_argument("-d", "--data_root", default="dataset", type=str, help="data root")
     parser.add_argument("-s", "--save_root", default="save", type=str, help="save root")
     parser.add_argument("--devices", default='0,', type=str, help="device' id to use")
@@ -155,28 +134,15 @@ if __name__ == '__main__':
     parser.add_argument("--test_metric", default="test/mae", type=str, help="Test metric")
     parser.add_argument("--es_patience", default=10, type=int, help="Early stopping patience")
     parser.add_argument("--num_workers", default=10, type=int, help="Number of workers for data loading")
-
     args = parser.parse_args()
-
-
-    # parser.add_argument("-c", "--config", type=str)
 
     for symbol in ticker_symbols:
 
         # Before GA
         args.dataset_name = symbol
 
-        '''
-         # Using regular expressions to match the pattern _{int}for{int}.py
-        pattern = re.compile(rf"{symbol}_(\d+)for(\d+)\.py")
-        matching_files = [config_file for config_file in os.listdir("config/reproduce_conf/RMoK/") if pattern.match(config_file)]
-        
-        if matching_files:
-            args.config = f"config/reproduce_conf/RMoK/{matching_files[0]}"
-        else:
-            print(f"No matching config file found for {symbol}.")
-        '''
 
+        # After GA
         args.hist_len = 60
         args.pred_len = 1
         args.var_num = 50
@@ -184,9 +150,7 @@ if __name__ == '__main__':
         args.data_split = [2000, 0, 500]
         
         conf = vars(args)
-        # init_exp_conf = load_config(args.config)
         
-
         training_conf = {
             "seed": int(args.seed),
             "data_root": f"dataset/{symbol}",
@@ -194,7 +158,6 @@ if __name__ == '__main__':
             "devices": args.devices,
             "use_wandb": args.use_wandb
         }
-
 
         trainer, data_module, model = train_init(training_conf, conf) 
         train_func(trainer, data_module, model)
