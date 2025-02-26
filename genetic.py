@@ -2,6 +2,7 @@ import random
 from prettytable import PrettyTable
 import numpy as np
 import matplotlib.pyplot as plt
+from train import * 
 
 
 seed_value = 42
@@ -15,24 +16,26 @@ class Chromosome:
             'hyperparameters': hyperparameters,
         }
 
+        self.fitness = 0
+
 def decode(ind):
+    indicators_bool = ind.genes['features']
     window_size_list, KAN_layers_list = ind.genes['hyperparameters'][:5], ind.genes['hyperparameters'][5:]
     window_size = int("".join(map(str, window_size_list)), 2)
     (WaveKAN, NaiveFourierKAN, JacobiKAN, ChebyKAN, TaylorKAN, RBFKAN) = KAN_layers_list
 
-    return window_size, WaveKAN, NaiveFourierKAN, JacobiKAN, ChebyKAN, TaylorKAN, RBFKAN
+    return indicators_bool, window_size, WaveKAN, NaiveFourierKAN, JacobiKAN, ChebyKAN, TaylorKAN, RBFKAN
 
-def fitness_function(ind, trainer=None, data_module=None, model=None):
-    # TO DO // Connect Trainer, data_module, model
+def fitness_function(ind, training_conf, conf):
+    conf.indicators_bool = ind.genes['features'] 
 
-    selected_list = ind.genes['features'] 
-    #selected_columns = [col for col, sel in zip(df.columns, selected_list) if sel == 1]
-    #selected_df = df[selected_columns]
+    trainer, data_module, model = train_init(training_conf, conf)
+    trainer, data_module, model = train_func(trainer, data_module, model)
 
-
-    window_size, WaveKAN, NaiveFourierKAN, JacobiKAN, ChebyKAN, TaylorKAN, RBFKAN = decode(ind)
+    test_loss = model.custom_losses[-1]
+    print(test_loss)
     
-    return 1 # TO DO // Actual Loss
+    ind.fitness = test_loss
 
 def create_initial_population(population_size):
     # Initialize a population of chromosomes with random values
@@ -60,10 +63,10 @@ def create_initial_population(population_size):
     return population
 
 
-def selection(population, fitnesses, tournament_size=3):
+def selection(population, all_fitnesses, tournament_size=3):
     selected = []
     for _ in range(len(population)):
-        tournament = random.sample(list(zip(population, fitnesses)), tournament_size)
+        tournament = random.sample(list(zip(population, all_fitnesses)), tournament_size)
         winner = max(tournament, key=lambda x: x[1])[0]
         selected.append(winner)
     return selected
@@ -126,8 +129,8 @@ def mutation(chromosome, mutation_rate):
     return chromosome
 
 
-def genetic_algorithm(population_size, total_generations, n_features, n_hyperparameters, trainer, data_module, model):
-    population = create_initial_population(population_size)
+def genetic_algorithm(training_conf, conf):
+    population = create_initial_population(conf['population_size'])
     
     best_performers = []
     all_populations = []
@@ -140,27 +143,28 @@ def genetic_algorithm(population_size, total_generations, n_features, n_hyperpar
     table = PrettyTable()
     table.field_names = ["Generation", "Features", "Hyperparameters", "Fitness"]
 
-    for generation in range(total_generations):
-        fitnesses = [fitness_function(ind, trainer, data_module, model) for ind in population]
+    for generation in range(conf['total_generations']):
+
+        _ = [ind.fitness_function(ind, training_conf, conf) for ind in population]
 
         # Store the best performer of the current generation
-        best_individual = max(population, key=fitness_function)
-        best_fitness = fitness_function(best_individual, trainer, data_module, model)
-        best_performers.append((best_individual, best_fitness))
+        best_individual = max(population, key=lambda ch: ch.fitness)
+        best_performers.append((best_individual, best_individual.fitness))
         all_populations.append(population[:])
-        table.add_row([generation + 1, "".join(map(str, best_individual.genes['features'])), "".join(map(str, best_individual.genes['hyperparameters'])), best_fitness])
+        table.add_row([generation + 1, "".join(map(str, best_individual.genes['features'])), "".join(map(str, best_individual.genes['hyperparameters'])), best_individual.fitness])
 
-        population = selection(population, fitnesses)
+        all_fitnesses = [ch.fitness for ch in population]
+        population = selection(population, all_fitnesses)
 
         next_population = []
         for i in range(0, len(population)-1, 2):
             parent1 = population[i]
             parent2 = population[i + 1]
 
-            if (generation == (total_generations//2)) or ((len(fg) >= 2) and ((fg[-1]-fg[-2]) == 0)): # // TO DO 
-                parent1 = intra_chromosome_crossover(parent1, n_features, n_hyperparameters)
+            if (generation == (conf['total_generations']//2)) or ((len(fg) >= 2) and ((fg[-1]-fg[-2]) == 0)): # // TO DO 
+                parent1 = intra_chromosome_crossover(parent1, conf['n_features'], conf['n_hyperparameters'])
 
-            child1, child2 = inter_chromosome_crossover(parent1, parent2, n_features, n_hyperparameters)
+            child1, child2 = inter_chromosome_crossover(parent1, parent2, conf['n_features'], conf['n_hyperparameters'])
 
             # Calculate increment
             if len(fg) >= 2 and (fg[-1] - fg[-2]) != 0:
@@ -189,16 +193,17 @@ def genetic_algorithm(population_size, total_generations, n_features, n_hyperpar
     print(table)
 
     # Plot the population of one generation (last generation)
-    final_population = all_populations[-1]
-    final_fitnesses = [fitness_function(ind, trainer, data_module, model) for ind in final_population]
+    #final_population = all_populations[-1]
+    #final_fitnesses = [fitness_function(ind, training_conf, conf) for ind in final_population]
 
+    '''
     # Plot the values of a, b, and c over generations
     generations_list = range(1, len(best_performers) + 1)
 
     # Plot the fitness values over generations
     best_fitness_values = [fit[1] for fit in best_performers]
-    min_fitness_values = [min([fitness_function(ind, trainer, data_module, model) for ind in population]) for population in all_populations]
-    max_fitness_values = [max([fitness_function(ind, trainer, data_module, model) for ind in population]) for population in all_populations]
+    min_fitness_values = [min([fitness_function(ind, training_conf, conf) for ind in population]) for population in all_populations]
+    max_fitness_values = [max([fitness_function(ind, training_conf, conf) for ind in population]) for population in all_populations]
     fig, ax = plt.subplots()
     ax.plot(generations_list, best_fitness_values, label='Best Fitness', color='black')
     ax.fill_between(generations_list, min_fitness_values, max_fitness_values, color='gray', alpha=0.5, label='Fitness Range')
@@ -207,7 +212,10 @@ def genetic_algorithm(population_size, total_generations, n_features, n_hyperpar
     ax.set_title('Fitness Over Generations')
     ax.legend()
     plt.savefig('plots/GA.png')
+    '''
 
-    return max(population, key=fitness_function)
+    best_ch = max(population, key=lambda ch: ch.fitness) # TO DO 
+    indicators_bool, window_size, WaveKAN, NaiveFourierKAN, JacobiKAN, ChebyKAN, TaylorKAN, RBFKAN = decode(best_ch)
 
+    return indicators_bool, window_size, WaveKAN, NaiveFourierKAN, JacobiKAN, ChebyKAN, TaylorKAN, RBFKAN
 

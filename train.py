@@ -103,7 +103,10 @@ def train_func(trainer, data_module, model):
     #trainer.test(model, datamodule=data_module, ckpt_path='best')
     trainer.test(model, datamodule=data_module)
 
-    model.plot_losses()
+    model.train_plot_losses()
+    model.test_plot_losses()
+
+    return trainer, data_module, model
 
 
 
@@ -134,22 +137,31 @@ if __name__ == '__main__':
     parser.add_argument("--test_metric", default="test/mae", type=str, help="Test metric")
     parser.add_argument("--es_patience", default=10, type=int, help="Early stopping patience")
     parser.add_argument("--num_workers", default=10, type=int, help="Number of workers for data loading")
+
+    parser.add_argument("--population_size", default=4, type=int, help="Population Size for GA")
+    parser.add_argument("--total_generations", default=2, type=int, help="Total number of generations for GA")
+    parser.add_argument("--n_features", default=50, type=int, help="Number of features for GA")
+    parser.add_argument("--n_hyperparameters", default=11, type=int, help="Number of hyperparameters for GA")
+
     args = parser.parse_args()
+    args.hist_len = 60
+    args.pred_len = 1
+    args.var_num = 50
+    args.freq = 1440 # TO DO ///
+    args.data_split = [2000, 0, 500]
 
     for symbol in ticker_symbols:
         # Before GA
         args.dataset_name = symbol
+        args.indicators_bool = [1 for i in range(args.n_features)]
+        args.window_size = [1, 1, 1, 1, 1]
+        args.WaveKAN = [1]
+        args.NaiveFourierKAN = [1]
+        args.JacobiKAN = [1]
+        args.ChebyKAN = [1]
+        args.TaylorKAN = [1]
+        args.RBFKAN = [1]
 
-
-        # After GA
-        args.hist_len = 60
-        args.pred_len = 1
-        args.var_num = 50
-        args.freq = 1440 # TO DO ///
-        args.data_split = [2000, 0, 500]
-        
-        
-        
         training_conf = {
             "seed": int(args.seed),
             "data_root": f"dataset/{symbol}",
@@ -158,25 +170,21 @@ if __name__ == '__main__':
             "use_wandb": args.use_wandb
         }
 
-        conf = vars(args)
-        trainer, data_module, model = train_init(training_conf, conf) 
-        train_func(trainer, data_module, model)
-        
-        
-        ''' # TO DO ///
-        trainer, data_module, model = train_init(training_conf, init_exp_conf)
+        # GA
+        indicators_bool, window_size, WaveKAN, NaiveFourierKAN, JacobiKAN, ChebyKAN, TaylorKAN, RBFKAN = genetic_algorithm(training_conf, **vars(args))
 
-        # Run the genetic algorithm
-        population_size = 10
-        total_generations = 10
-        n_features = 50
-        n_hyperparameters = 11
+        # After GA
+        args.indicators_bool = indicators_bool
+        args.window_size = window_size
+        args.WaveKAN = WaveKAN
+        args.NaiveFourierKAN = NaiveFourierKAN
+        args.JacobiKAN = JacobiKAN
+        args.ChebyKAN = ChebyKAN
+        args.TaylorKAN = TaylorKAN
+        args.RBFKAN = RBFKAN
 
-        best_solution = genetic_algorithm(population_size, total_generations, n_features, n_hyperparameters, trainer, data_module, model)
-        print("Best Solution found:", best_solution)
-
-        training_conf["features_mask"] = best_solution.genes["features"]
-        print(training_conf["features_mask"])
-        trainer, data_module, model = train_init(training_conf, init_exp_conf)
-        train_func(trainer, data_module, model)
-        '''
+        print("\n")
+        print(f"For stock {symbol}, optimal model is finally trained below: ")
+        trainer, data_module, model = train_init(training_conf, **vars(args))
+        trainer, data_module, model = train_func(trainer, data_module, model)
+        print("\n")
