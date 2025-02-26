@@ -68,11 +68,8 @@ def load_config(exp_conf_path):
 
 
 def train_init(hyper_conf, conf):
-
     if hyper_conf is not None:
         for k, v in hyper_conf.items():
-            print(k)
-            print(v)
             conf[k] = v
     conf['conf_hash'] = cal_conf_hash(conf, hash_len=10)
 
@@ -142,8 +139,6 @@ if __name__ == '__main__':
     parser.add_argument("--devices", default='0,', type=str, help="device' id to use")
     parser.add_argument("--use_wandb", default=0, type=int, help="use wandb")
     parser.add_argument("--seed", type=int, default=1, help="seed")
-    
-    # Adding new arguments
     parser.add_argument("--model_name", default="DenseRMoK", type=str, help="Model name")
     parser.add_argument("--revin_affine", default=False, type=bool, help="Use revin affine")
     parser.add_argument("--lr", default=0.001, type=float, help="Learning rate")
@@ -163,7 +158,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    # Now, args will contain all the attributes set via command line or defaults
 
     # parser.add_argument("-c", "--config", type=str)
 
@@ -189,9 +183,7 @@ if __name__ == '__main__':
         args.freq = 1440 # TO DO ///
         args.data_split = [2000, 0, 500]
         
-        conf = {**args}
-        
-
+        conf = vars(args)
         # init_exp_conf = load_config(args.config)
         
 
@@ -204,6 +196,10 @@ if __name__ == '__main__':
         }
 
 
+        trainer, data_module, model = train_init(training_conf, conf) 
+        train_func(trainer, data_module, model)
+        
+        
         ''' # TO DO ///
         trainer, data_module, model = train_init(training_conf, init_exp_conf)
 
@@ -221,8 +217,3 @@ if __name__ == '__main__':
         trainer, data_module, model = train_init(training_conf, init_exp_conf)
         train_func(trainer, data_module, model)
         '''
-        trainer, data_module, model = train_init(training_conf, conf) 
-        train_func(trainer, data_module, model)
-        #trainer, data_module, model = train_init(training_conf, init_exp_conf) # Train final optimal model
-        
-        
