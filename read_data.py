@@ -356,7 +356,7 @@ for stock in ticker_symbols:
     print("Data successfully saved.")
     print("\n")
 
-
+'''
 # Template content
 template_content = """exp_conf = dict(
     model_name="DenseRMoK",
@@ -390,3 +390,4 @@ def generate_config_files():
 
 # Generate configuration files
 generate_config_files()
+'''

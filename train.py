@@ -46,6 +46,7 @@ class TrainLossLoggerCallback(Callback):
             print(f"Epoch {epoch}: {loss:.4f}")
 
 
+'''
 def load_config(exp_conf_path):
     # 加载 exp_conf
     exp_conf = load_module_from_path("exp_conf", exp_conf_path).exp_conf
@@ -63,13 +64,17 @@ def load_config(exp_conf_path):
     fused_conf.update(exp_conf)
 
     return fused_conf
+'''
 
 
-def train_init(hyper_conf, conf):
+#def train_init(hyper_conf, conf):
+def train_init(conf):
+    '''
     if hyper_conf is not None:
         for k, v in hyper_conf.items():
             conf[k] = v
     conf['conf_hash'] = cal_conf_hash(conf, hash_len=10)
+    '''
 
     L.seed_everything(conf["seed"])
     save_dir = os.path.join(conf["save_root"], '{}_{}'.format(conf["model_name"], conf["dataset_name"]))
@@ -128,18 +133,47 @@ ticker_symbols = ['AAPL']
 #, 'MSFT', 'ORCL', 'AMD', 'CSCO', 'ADBE', 'IBM', 'TXN', 'AMAT', 'MU', 'ADI', 'INTC', 'LRCX', 'KLAC', 'MSI', 'GLW', 'HPQ', 'TYL', 'PTC', 'WDC']
 
 if __name__ == '__main__':
+    import argparse
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--config", type=str)
+
     parser.add_argument("-d", "--data_root", default="dataset", type=str, help="data root")
-    parser.add_argument("-s", "--save_root", default="save", help="save root")
+    parser.add_argument("-s", "--save_root", default="save", type=str, help="save root")
     parser.add_argument("--devices", default='0,', type=str, help="device' id to use")
     parser.add_argument("--use_wandb", default=0, type=int, help="use wandb")
     parser.add_argument("--seed", type=int, default=1, help="seed")
+    
+    # Adding new arguments
+    parser.add_argument("--model_name", default="DenseRMoK", type=str, help="Model name")
+    parser.add_argument("--revin_affine", default=False, type=bool, help="Use revin affine")
+    parser.add_argument("--lr", default=0.001, type=float, help="Learning rate")
+    parser.add_argument("--batch_size", default=20, type=int, help="Batch size")
+    parser.add_argument("--max_epochs", default=20, type=int, help="Maximum number of epochs")
+    parser.add_argument("--optimizer", default="AdamW", type=str, help="Optimizer type")
+    parser.add_argument("--optimizer_betas", default=(0.95, 0.9), type=eval, help="Optimizer betas")
+    parser.add_argument("--optimizer_weight_decay", default=1e-5, type=float, help="Optimizer weight decay")
+    parser.add_argument("--lr_scheduler", default='StepLR', type=str, help="Learning rate scheduler")
+    parser.add_argument("--lr_step_size", default=5, type=int, help="Learning rate step size")
+    parser.add_argument("--lr_gamma", default=0.5, type=float, help="Learning rate gamma")
+    parser.add_argument("--gradient_clip_val", default=5, type=float, help="Gradient clipping value")
+    parser.add_argument("--val_metric", default="val/loss", type=str, help="Validation metric")
+    parser.add_argument("--test_metric", default="test/mae", type=str, help="Test metric")
+    parser.add_argument("--es_patience", default=10, type=int, help="Early stopping patience")
+    parser.add_argument("--num_workers", default=10, type=int, help="Number of workers for data loading")
+
     args = parser.parse_args()
 
+    # Now, args will contain all the attributes set via command line or defaults
+
+    # parser.add_argument("-c", "--config", type=str)
+
     for symbol in ticker_symbols:
-        
-        # Using regular expressions to match the pattern _{int}for{int}.py
+
+        # Before GA
+        args.dataset_name = symbol
+
+        '''
+         # Using regular expressions to match the pattern _{int}for{int}.py
         pattern = re.compile(rf"{symbol}_(\d+)for(\d+)\.py")
         matching_files = [config_file for config_file in os.listdir("config/reproduce_conf/RMoK/") if pattern.match(config_file)]
         
@@ -147,17 +181,27 @@ if __name__ == '__main__':
             args.config = f"config/reproduce_conf/RMoK/{matching_files[0]}"
         else:
             print(f"No matching config file found for {symbol}.")
+        '''
 
-        init_exp_conf = load_config(args.config)
+        args.hist_len = 60
+        args.pred_len = 1
+        args.var_num = 50
+        args.freq = 1440 # TO DO ///
+        args.data_split = [2000, 0, 500]
         
+        
+
+        # init_exp_conf = load_config(args.config)
+        
+        '''
         training_conf = {
-            "seed": int(args.seed),
             "data_root": f"dataset/{symbol}",
             "save_root": args.save_root,
             "devices": args.devices,
-            "use_wandb": args.use_wandb
-            #, "features_mask":[]
+            "use_wandb": args.use_wandb,
+            "seed": int(args.seed)
         }
+        '''
 
         ''' # TO DO ///
         trainer, data_module, model = train_init(training_conf, init_exp_conf)
@@ -176,7 +220,8 @@ if __name__ == '__main__':
         trainer, data_module, model = train_init(training_conf, init_exp_conf)
         train_func(trainer, data_module, model)
         '''
-        
-        trainer, data_module, model = train_init(training_conf, init_exp_conf) # Train final optimal model
+        trainer, data_module, model = train_init(args) 
         train_func(trainer, data_module, model)
+        #trainer, data_module, model = train_init(training_conf, init_exp_conf) # Train final optimal model
+        
         

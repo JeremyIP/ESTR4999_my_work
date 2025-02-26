@@ -1,3 +1,4 @@
+'''
 exp_conf = dict(
     model_name="DenseRMoK",
     dataset_name='AAPL',     # Set to AAPL to point to your new dataset
@@ -9,3 +10,4 @@ exp_conf = dict(
 
     lr=0.001,                 # Learning rate
 )
+'''

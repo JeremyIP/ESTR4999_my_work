@@ -1,3 +1,4 @@
+'''
 task_conf = dict(
     # hist_len=96,
     # pred_len=720,
@@ -6,10 +7,9 @@ task_conf = dict(
     hist_len=60,
     pred_len=1,
 
-    batch_size=20,
-    max_epochs=20,
+    #batch_size=20,
+    #max_epochs=20,
     #lr=0.0001,
-    lr=0.0001,
     optimizer="AdamW",
     optimizer_betas=(0.95, 0.9),
     optimizer_weight_decay=1e-5,
@@ -23,3 +23,4 @@ task_conf = dict(
 
     num_workers=10,
 )
+'''
