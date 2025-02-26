@@ -44,7 +44,7 @@ def decode(ind):
     return indicators_bool, window_size, WaveKAN, NaiveFourierKAN, JacobiKAN, ChebyKAN, TaylorKAN, RBFKAN
 
 def fitness_function(ind, training_conf, conf):
-    conf.indicators_bool = ind.genes['features'] 
+    conf['indicators_bool'] = ind.genes['features'] 
 
     trainer, data_module, model = train_init(training_conf, conf)
     trainer, data_module, model = train_func(trainer, data_module, model)
