@@ -67,14 +67,13 @@ def load_config(exp_conf_path):
 '''
 
 
-#def train_init(hyper_conf, conf):
-def train_init(conf):
-    '''
+def train_init(hyper_conf, conf):
+
     if hyper_conf is not None:
         for k, v in hyper_conf.items():
             conf[k] = v
     conf['conf_hash'] = cal_conf_hash(conf, hash_len=10)
-    '''
+
 
     L.seed_everything(conf["seed"])
     save_dir = os.path.join(conf["save_root"], '{}_{}'.format(conf["model_name"], conf["dataset_name"]))
@@ -193,7 +192,7 @@ if __name__ == '__main__':
 
         # init_exp_conf = load_config(args.config)
         
-        '''
+
         training_conf = {
             "data_root": f"dataset/{symbol}",
             "save_root": args.save_root,
@@ -201,7 +200,7 @@ if __name__ == '__main__':
             "use_wandb": args.use_wandb,
             "seed": int(args.seed)
         }
-        '''
+
 
         ''' # TO DO ///
         trainer, data_module, model = train_init(training_conf, init_exp_conf)
@@ -220,7 +219,7 @@ if __name__ == '__main__':
         trainer, data_module, model = train_init(training_conf, init_exp_conf)
         train_func(trainer, data_module, model)
         '''
-        trainer, data_module, model = train_init(args) 
+        trainer, data_module, model = train_init(training_conf, args) 
         train_func(trainer, data_module, model)
         #trainer, data_module, model = train_init(training_conf, init_exp_conf) # Train final optimal model
         
