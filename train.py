@@ -398,7 +398,7 @@ if __name__ == '__main__':
         }
 
         # GA
-        indicators_bool, window_size, WaveKAN, NaiveFourierKAN, JacobiKAN, ChebyKAN, TaylorKAN, RBFKAN = genetic_algorithm(training_conf, **vars(args))
+        indicators_bool, window_size, WaveKAN, NaiveFourierKAN, JacobiKAN, ChebyKAN, TaylorKAN, RBFKAN = genetic_algorithm(training_conf, vars(args))
 
         # After GA
         args.indicators_bool = indicators_bool
