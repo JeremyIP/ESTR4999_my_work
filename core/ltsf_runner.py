@@ -19,8 +19,8 @@ class LTSFRunner(L.LightningModule):
         self.load_model()
         self.configure_loss()
 
-        self.indicators_bool = kargs.indicators_bool
-        self.dataset_name = kargs.dataset_name
+        self.indicators_bool = kargs['indicators_bool']
+        self.dataset_name = kargs['dataset_name']
 
         # Load the scaler info which should include 'min' and 'max'
         #stat = np.load(os.path.join(self.hparams.data_root, self.hparams.dataset_name, 'var_scaler_info.npz'))
