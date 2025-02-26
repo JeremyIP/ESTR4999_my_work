@@ -71,6 +71,8 @@ def train_init(hyper_conf, conf):
 
     if hyper_conf is not None:
         for k, v in hyper_conf.items():
+            print(k)
+            print(v)
             conf[k] = v
     conf['conf_hash'] = cal_conf_hash(conf, hash_len=10)
 
