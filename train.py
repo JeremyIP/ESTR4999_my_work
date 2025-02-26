@@ -196,11 +196,11 @@ if __name__ == '__main__':
         
 
         training_conf = {
+            "seed": int(args.seed),
             "data_root": f"dataset/{symbol}",
             "save_root": args.save_root,
             "devices": args.devices,
-            "use_wandb": args.use_wandb,
-            "seed": int(args.seed)
+            "use_wandb": args.use_wandb
         }
 
 
