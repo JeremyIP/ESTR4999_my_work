@@ -347,12 +347,8 @@ for stock in ticker_symbols:
     # Save the final combined data and normalized time markers
     np.savez(os.path.join(output_dir, f'feature.npz'), norm_var=combined_data.values, norm_time_marker=norm_time_marker)
 
-    # Verify shapes
-    print("Stock:", stock)
     print("Final combined data contains NaN?:", combined_data.isna().any().any())
     print("Final combined data shape:", combined_data.shape)  
-    print("norm_time_marker shape:", norm_time_marker.shape)
-    print(f"min shape: {min_val.shape} and max shape {max_val.shape}")
     print("Data successfully saved.")
     print("\n")
 
