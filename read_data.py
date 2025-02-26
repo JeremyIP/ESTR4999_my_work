@@ -40,11 +40,6 @@ for ticker_symbol in ticker_symbols:
     
     stock_series.index = stock_series.index.tz_localize(None)  # Remove timezone
 
-    '''
-    # Calculate the Simple Moving Average (SMA) for each feature
-    for feature in ['Open', 'High', 'Low', 'Close', 'Volume']:
-        stock_series[feature] = stock_series[feature].rolling(window=window).mean()
-    '''
 
     # Rename columns to the desired format
     stock_data[ticker_symbol] = stock_series  # Store the smoothed data in the dictionary
@@ -257,12 +252,6 @@ for ticker_symbol in ticker_symbols:
     )[['Open', 'High', 'Low', 'Close', 'Volume']]
     
     index_series.index = index_series.index.tz_localize(None)  # Remove timezone
-
-    '''
-    # Calculate the Simple Moving Average (SMA) for each feature
-    for feature in ['Open', 'High', 'Low', 'Close', 'Volume']:
-        index_series[feature] = index_series[feature].rolling(window=window).mean()
-    '''
 
     # Rename columns to the desired format
     index_data[ticker_symbol] = index_series  # Store the smoothed data in the dictionary
