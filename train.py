@@ -33,17 +33,17 @@ class Chromosome:
 
         self.fitness = 0
 
-def decode(ind):
+def decode(ind, conf):
     indicators_list_01 = ind.genes['features']
     var_num = sum(indicators_list_01)
     
-    hist_len_list_01, KAN_experts_list_01 = ind.genes['hyperparameters'][:5], ind.genes['hyperparameters'][5:]
+    hist_len_list_01, KAN_experts_list_01 = ind.genes['hyperparameters'][:conf['max_hist_len_n_bit']], ind.genes['hyperparameters'][conf['max_hist_len_n_bit']:]
     hist_len = int("".join(map(str, hist_len_list_01)), 2)
 
     return var_num, indicators_list_01, hist_len, hist_len_list_01, KAN_experts_list_01
 
 def fitness_function(ind, training_conf, conf):
-    conf['var_num'], conf['indicators_list_01'], conf['hist_len'], conf['hist_len_list_01'], conf['args.KAN_experts_list_01'] = decode(ind)
+    conf['var_num'], conf['indicators_list_01'], conf['hist_len'], conf['hist_len_list_01'], conf['args.KAN_experts_list_01'] = decode(ind, conf)
     print(f"{conf['var_num']} features are selected")
     print(conf['indicators_list_01'])
     print(f"window size: {conf['hist_len']}")
@@ -238,7 +238,7 @@ def genetic_algorithm(training_conf, conf):
     '''
 
     best_ch = max(population, key=lambda ch: ch.fitness) 
-    var_num, indicators_list_01, hist_len, hist_len_list_01, KAN_experts_list_01 = decode(best_ch)
+    var_num, indicators_list_01, hist_len, hist_len_list_01, KAN_experts_list_01 = decode(best_ch, conf)
 
     return var_num, indicators_list_01, hist_len, hist_len_list_01, KAN_experts_list_01
 
@@ -370,6 +370,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     args.max_hist_len_n_bit = math.floor(math.log2(args.max_hist_len))
+    print(args.max_hist_len_n_bit)
     args.n_hyperparameters = args.max_hist_len_n_bit + args.n_KAN_experts
     
     for symbol in ticker_symbols:
@@ -379,7 +380,7 @@ if __name__ == '__main__':
         args.var_num = 50
         args.indicators_list_01 = [1 for i in range(args.total_n_features)]
 
-        args.hist_len = 64
+        args.hist_len = 128
         args.hist_len_list_01 = [1 for i in range(args.max_hist_len_n_bit)]
 
         args.KAN_experts_list_01 = [1 for i in range(args.n_KAN_experts)] # Ordering: T, W, J, C, R, N
