@@ -24,8 +24,8 @@ class LTSFRunner(L.LightningModule):
 
         # Load the scaler info which should include 'min' and 'max'
         stat = np.load(os.path.join(self.hparams.data_root, 'var_scaler_info.npz'))
-        self.register_buffer('min', torch.tensor(stat['min'][np.array(self.indicators_list_01).astype(bool)]).float())
-        self.register_buffer('max', torch.tensor(stat['max'][np.array(self.indicators_list_01).astype(bool)]).float())
+        self.register_buffer('min', torch.tensor(stat['min'][np.array(self.indicators_bool).astype(bool)]).float())
+        self.register_buffer('max', torch.tensor(stat['max'][np.array(self.indicators_bool).astype(bool)]).float())
 
         # Use the closing price channel (index 3) for output de-normalization.
         # close_index = 3  # Index of Close price in OHLC

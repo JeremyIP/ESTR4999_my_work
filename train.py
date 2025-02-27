@@ -142,6 +142,8 @@ def mutation(chromosome, mutation_rate):
 
 def genetic_algorithm(training_conf, conf):
     population = create_initial_population(conf)
+    print(population)
+    print("\n")
     
     best_performers = []
     all_populations = []
@@ -166,6 +168,7 @@ def genetic_algorithm(training_conf, conf):
 
         all_fitnesses = [ch.fitness for ch in population]
         population = selection(population, all_fitnesses)
+        print(population)
 
         next_population = []
         for i in range(0, len(population)-1, 2):
