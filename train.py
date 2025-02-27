@@ -141,12 +141,7 @@ def mutation(chromosome, mutation_rate):
 
 
 def genetic_algorithm(training_conf, conf):
-    print("Doing GA: ")
-    population = create_initial_population(conf)
-    print(population)
-    print("Initialized population")
-    print("\n")
-    
+    population = create_initial_population(conf)    
     best_performers = []
     all_populations = []
 
@@ -160,8 +155,9 @@ def genetic_algorithm(training_conf, conf):
 
     for generation in range(conf['total_generations']):
 
-        _ = [fitness_function(ind, training_conf, conf) for ind in population]
-
+        fit_list = [fitness_function(ind, training_conf, conf) for ind in population]
+        print(f"Fitness list in Generation {generation}:", fit_list)
+        
         # Store the best performer of the current generation
         best_individual = max(population, key=lambda ch: ch.fitness)
         best_performers.append((best_individual, best_individual.fitness))
@@ -387,9 +383,10 @@ if __name__ == '__main__':
         }
 
         # GA
+        print(f"For stock {symbol}:")
+        print("Doing GA")
         args.var_num, args.indicators_list_01, args.hist_len, args.hist_len_list_01, args.KAN_experts_list_01 = genetic_algorithm(training_conf, vars(args))
 
-        print(f"For stock {symbol}:")
         print("After GA: ")
         print(args.var_num)
         print(args.indicators_list_01)
