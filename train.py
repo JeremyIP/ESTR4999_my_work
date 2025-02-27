@@ -2,19 +2,17 @@ import argparse
 import importlib
 import importlib.util
 import os
-import re
-import subprocess
+import math
 
 import lightning.pytorch as L
 from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint, EarlyStopping
 from lightning.pytorch.loggers import CSVLogger, WandbLogger
+from lightning.pytorch.callbacks import Callback
 
 from core.data_runner import DataInterface
 from core.ltsf_runner import LTSFRunner
 from core.util import cal_conf_hash
 from core.util import load_module_from_path
-
-
 
 import random
 from prettytable import PrettyTable
@@ -36,44 +34,42 @@ class Chromosome:
         self.fitness = 0
 
 def decode(ind):
-    indicators_bool = ind.genes['features']
-    window_size_list, KAN_layers_list = ind.genes['hyperparameters'][:5], ind.genes['hyperparameters'][5:]
-    window_size = int("".join(map(str, window_size_list)), 2)
-    (WaveKAN, NaiveFourierKAN, JacobiKAN, ChebyKAN, TaylorKAN, RBFKAN) = KAN_layers_list
+    indicators_list_01 = ind.genes['features']
+    var_num = sum(indicators_list_01)
+    
+    hist_len_list_01, KAN_experts_list_01 = ind.genes['hyperparameters'][:5], ind.genes['hyperparameters'][5:]
+    hist_len = int("".join(map(str, hist_len_list_01)), 2)
 
-    return indicators_bool, window_size, WaveKAN, NaiveFourierKAN, JacobiKAN, ChebyKAN, TaylorKAN, RBFKAN
+    return var_num, indicators_list_01, hist_len, hist_len_list_01, KAN_experts_list_01
 
 def fitness_function(ind, training_conf, conf):
-    conf['indicators_bool'] = ind.genes['features'] 
+    args.var_num, args.indicators_list_01, args.hist_len, args.hist_len_list_01, args.KAN_experts_list_01 = decode(ind)
 
     trainer, data_module, model = train_init(training_conf, conf)
     trainer, data_module, model = train_func(trainer, data_module, model)
 
     test_loss = model.custom_losses[-1]
     print(test_loss)
-    
-    ind.fitness = test_loss
 
-def create_initial_population(population_size):
-    # Initialize a population of chromosomes with random values
+    ind.fitness = -1
+    
+    # TO DO 
+    # ind.fitness = -1 * test_loss # min MSE == max -MSE 
+
+def create_initial_population(conf):
     population = []
-    for _ in range(population_size):
+
+    for _ in range(conf['population_size']):
         # 5 (index) : ('^GSPC', 'Open')	('^GSPC', 'High')	('^GSPC', 'Low')	('^GSPC', 'Close')	('^GSPC', 'Volume')	
         # 31 (technical indicators) : Bollinger_Bands_Upper	Bollinger_Bands_Middle	Bollinger_Bands_Lower	DEMA	Midpoint	Midpoint_Price	T3_Moving_Average	ADX	Absolute_Price_Oscillator	Aroon_Up	Aroon_Down	Aroon_Oscillator	Balance_of_Power	CCI	Chande_Momentum_Oscillator	MACD	MACD_Signal	MACD_Histogram	Money_Flow_Index	Normalized_Average_True_Range	Chaikin_A/D_Line	Chaikin_A/D_Oscillator	Median_Price	Typical_Price	Weighted_Closing_Price	Hilbert_Dominant_Cycle_Phase	Hilbert_Phasor_Components_Inphase	Hilbert_Phasor_Components_Quadrature	Hilbert_SineWave	Hilbert_LeadSineWave	Hilbert_Trend_vs_Cycle_Mode	
-        # 5( stock) : Open	High	Low	Close	Volume	
+        # 5( stock) : Open	High	Low	Close	Volume	 # TO DO ???
         # 9 (macro indicators) : M2	S&P CoreLogic Case-Shiller U.S. National Home Price Index	All-Transactions House Price Index for the United States	M1	Consumer Price Index for All Urban Consumers: All Items in U.S. City Average	Trade Balance: Goods and Services, Balance of Payments Basis	New Privately-Owned Housing Units Started: Total Units	Domestic Auto Production	New One Family Houses Sold
 
-        features = [random.choice([0, 1]) for _ in range(50)]
+        features = [random.choice([0, 1]) for _ in range(conf['total_n_features'])]
 
-        window_size_list = [random.choice([0, 1]) for _ in range(5)] # 0 to 31
-        WaveKAN = [random.choice([0, 1])]
-        NaiveFourierKAN = [random.choice([0, 1])]
-        JacobiKAN = [random.choice([0, 1])]
-        ChebyKAN = [random.choice([0, 1])]
-        TaylorKAN = [random.choice([0, 1])]
-        RBFKAN = [random.choice([0, 1])]
-        KAN_layers_list = WaveKAN + NaiveFourierKAN + JacobiKAN + ChebyKAN + TaylorKAN + RBFKAN
-        hyperparameters = window_size_list + KAN_layers_list
+        hist_len_list_01 = [random.choice([0, 1]) for _ in range(conf['max_hist_len_n_bit'])] 
+        KAN_experts_list_01 = [random.choice([0, 1]) for _ in range(conf['n_KAN_experts'])] 
+        hyperparameters = hist_len_list_01 + KAN_experts_list_01
 
         population.append(Chromosome(features, hyperparameters))
 
@@ -147,7 +143,7 @@ def mutation(chromosome, mutation_rate):
 
 
 def genetic_algorithm(training_conf, conf):
-    population = create_initial_population(conf['population_size'])
+    population = create_initial_population(conf)
     
     best_performers = []
     all_populations = []
@@ -179,9 +175,9 @@ def genetic_algorithm(training_conf, conf):
             parent2 = population[i + 1]
 
             if (generation == (conf['total_generations']//2)) or ((len(fg) >= 2) and ((fg[-1]-fg[-2]) == 0)): # // TO DO 
-                parent1 = intra_chromosome_crossover(parent1, conf['n_features'], conf['n_hyperparameters'])
+                parent1 = intra_chromosome_crossover(parent1, conf['total_n_features'], conf['n_hyperparameters'])
 
-            child1, child2 = inter_chromosome_crossover(parent1, parent2, conf['n_features'], conf['n_hyperparameters'])
+            child1, child2 = inter_chromosome_crossover(parent1, parent2, conf['total_n_features'], conf['n_hyperparameters'])
 
             # Calculate increment
             if len(fg) >= 2 and (fg[-1] - fg[-2]) != 0:
@@ -205,6 +201,7 @@ def genetic_algorithm(training_conf, conf):
         # Replace the old population with the new one, preserving the best individual
         next_population[0] = best_individual
         population = next_population
+        fg.append(best_individual.fitness)
 
     # Print the table
     print(table)
@@ -231,20 +228,14 @@ def genetic_algorithm(training_conf, conf):
     plt.savefig('plots/GA.png')
     '''
 
-    best_ch = max(population, key=lambda ch: ch.fitness) # TO DO 
-    indicators_bool, window_size, WaveKAN, NaiveFourierKAN, JacobiKAN, ChebyKAN, TaylorKAN, RBFKAN = decode(best_ch)
+    best_ch = max(population, key=lambda ch: ch.fitness) 
+    var_num, indicators_list_01, hist_len, hist_len_list_01, KAN_experts_list_01 = decode(best_ch)
 
-    return indicators_bool, window_size, WaveKAN, NaiveFourierKAN, JacobiKAN, ChebyKAN, TaylorKAN, RBFKAN
-
-
+    return var_num, indicators_list_01, hist_len, hist_len_list_01, KAN_experts_list_01
 
 
 
 
-
-
-# Modified Code to invoke call back to print the loss per epoch
-from lightning.pytorch.callbacks import Callback
 class TrainLossLoggerCallback(Callback):
     def __init__(self):
         super().__init__()
@@ -262,17 +253,6 @@ class TrainLossLoggerCallback(Callback):
             self.train_losses.append(avg_loss.item())
             # Print the average loss for the epoch
             print(f"Epoch {trainer.current_epoch + 1}: Average Train Loss = {avg_loss.item():.4f}")
-
-'''
-    def on_train_end(self, trainer, pl_module):
-        """
-        Called at the end of training.
-        Prints the list of average training losses per epoch.
-        """
-        print("\nTraining Loss per Epoch:")
-        for epoch, loss in enumerate(self.train_losses, 1):
-            print(f"Epoch {epoch}: {loss:.4f}")
-'''
 
 def train_init(hyper_conf, conf):
     if hyper_conf is not None:
@@ -350,6 +330,7 @@ if __name__ == '__main__':
     parser.add_argument("--seed", type=int, default=1, help="seed")
     parser.add_argument("--model_name", default="DenseRMoK", type=str, help="Model name")
     parser.add_argument("--revin_affine", default=False, type=bool, help="Use revin affine")
+
     parser.add_argument("--lr", default=0.001, type=float, help="Learning rate")
     parser.add_argument("--batch_size", default=20, type=int, help="Batch size")
     parser.add_argument("--max_epochs", default=20, type=int, help="Maximum number of epochs")
@@ -367,27 +348,32 @@ if __name__ == '__main__':
 
     parser.add_argument("--population_size", default=4, type=int, help="Population Size for GA")
     parser.add_argument("--total_generations", default=2, type=int, help="Total number of generations for GA")
-    parser.add_argument("--n_features", default=50, type=int, help="Number of features for GA")
-    parser.add_argument("--n_hyperparameters", default=11, type=int, help="Number of hyperparameters for GA")
+    parser.add_argument("--total_n_features", default=50, type=int, help="Total number of features for GA")
+    parser.add_argument("--max_hist_len", default=64, type=int, help="Maximum window size allowed")
+    parser.add_argument("--n_KAN_experts", default=6, type=int, help="Number of KAN experts to be used")
+
+    parser.add_argument("--drop", default=0.1, type=float, help="Dropout rate for mixture of KAN")
+
+    parser.add_argument("--pred_len", default=1, type=int, help="Number of predicted made each time (should be fixed)")
+    parser.add_argument("--data_split", default=[2000, 0, 500], type=list, help="Train-Val-Test Ratio (Val should be fixed to 0)")
+    parser.add_argument("--freq", default=1440, type=int, help="(should be fixed)")
 
     args = parser.parse_args()
-    args.hist_len = 60
-    args.pred_len = 1
-    args.var_num = 50
-    args.freq = 1440 # TO DO ///
-    args.data_split = [2000, 0, 500]
 
+    args.max_hist_len_n_bit = math.floor(math.log2(args.max_hist_len))
+    args.n_hyperparameters = args.max_hist_len_n_bit + args.n_KAN_experts
+    
     for symbol in ticker_symbols:
         # Before GA
         args.dataset_name = symbol
-        args.indicators_bool = [1 for i in range(args.n_features)]
-        args.window_size = [1, 1, 1, 1, 1]
-        args.WaveKAN = [1]
-        args.NaiveFourierKAN = [1]
-        args.JacobiKAN = [1]
-        args.ChebyKAN = [1]
-        args.TaylorKAN = [1]
-        args.RBFKAN = [1]
+
+        args.var_num = 50
+        args.indicators_list_01 = [1 for i in range(args.total_n_features)]
+
+        args.hist_len = 64
+        args.hist_len_list_01 = [1 for i in range(args.max_hist_len_n_bit)]
+
+        args.KAN_experts_list_01 = [1 for i in range(args.n_KAN_experts)] # Ordering: T, W, J, C, R, N
 
         training_conf = {
             "seed": int(args.seed),
@@ -398,20 +384,18 @@ if __name__ == '__main__':
         }
 
         # GA
-        indicators_bool, window_size, WaveKAN, NaiveFourierKAN, JacobiKAN, ChebyKAN, TaylorKAN, RBFKAN = genetic_algorithm(training_conf, vars(args))
+        args.var_num, args.indicators_list_01, args.hist_len, args.hist_len_list_01, args.KAN_experts_list_01 = genetic_algorithm(training_conf, vars(args))
 
-        # After GA
-        args.indicators_bool = indicators_bool
-        args.window_size = window_size
-        args.WaveKAN = WaveKAN
-        args.NaiveFourierKAN = NaiveFourierKAN
-        args.JacobiKAN = JacobiKAN
-        args.ChebyKAN = ChebyKAN
-        args.TaylorKAN = TaylorKAN
-        args.RBFKAN = RBFKAN
+        print(f"For stock {symbol}:")
+        print("After GA: ")
+        print(args.var_num)
+        print(args.indicators_list_01)
+        print(args.var_num)
+        print(args.hist_len)
+        print(args.hist_len_list_01)
+        print(args.KAN_experts_list_01)
 
-        print("\n")
-        print(f"For stock {symbol}, optimal model is finally trained below: ")
+        print("Optimal model is finally trained below: ")
         trainer, data_module, model = train_init(training_conf, **vars(args))
         trainer, data_module, model = train_func(trainer, data_module, model)
         print("\n")

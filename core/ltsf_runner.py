@@ -19,19 +19,13 @@ class LTSFRunner(L.LightningModule):
         self.load_model()
         self.configure_loss()
 
-        self.indicators_bool = kargs['indicators_bool']
+        self.indicators_bool = kargs['indicators_list_01']
         self.dataset_name = kargs['dataset_name']
 
         # Load the scaler info which should include 'min' and 'max'
-        #stat = np.load(os.path.join(self.hparams.data_root, self.hparams.dataset_name, 'var_scaler_info.npz'))
         stat = np.load(os.path.join(self.hparams.data_root, 'var_scaler_info.npz'))
-
-        # Assuming 'min' and 'max' are stored in the file instead of 'mean' and 'std'
-        #self.register_buffer('min', torch.tensor(stat['min']).float())
-        #self.register_buffer('max', torch.tensor(stat['max']).float())
-
-        self.register_buffer('min', torch.tensor(stat['min'][np.array(self.indicators_bool).astype(bool)]).float())
-        self.register_buffer('max', torch.tensor(stat['max'][np.array(self.indicators_bool).astype(bool)]).float())
+        self.register_buffer('min', torch.tensor(stat['min'][np.array(self.indicators_list_01).astype(bool)]).float())
+        self.register_buffer('max', torch.tensor(stat['max'][np.array(self.indicators_list_01).astype(bool)]).float())
 
         # Use the closing price channel (index 3) for output de-normalization.
         # close_index = 3  # Index of Close price in OHLC

@@ -81,7 +81,7 @@ def data_provider(config, mode):
         pred_len=config['pred_len'],
         data_split=config['data_split'],
         freq=config['freq'],
-        indicators_bool=config['indicators_bool'],
+        indicators_bool=config['indicators_list_01'],
         mode=mode
     )
 
