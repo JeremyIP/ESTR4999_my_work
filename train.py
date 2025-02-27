@@ -155,8 +155,7 @@ def genetic_algorithm(training_conf, conf):
 
     for generation in range(conf['total_generations']):
 
-        fit_list = [fitness_function(ind, training_conf, conf) for ind in population]
-        print(f"Fitness list in Generation {generation}:", fit_list)
+        _ = [fitness_function(ind, training_conf, conf) for ind in population]
 
         # Store the best performer of the current generation
         best_individual = max(population, key=lambda ch: ch.fitness)
@@ -166,7 +165,6 @@ def genetic_algorithm(training_conf, conf):
 
         all_fitnesses = [ch.fitness for ch in population]
         population = selection(population, all_fitnesses)
-        print(population)
 
         next_population = []
         for i in range(0, len(population)-1, 2):
@@ -201,6 +199,8 @@ def genetic_algorithm(training_conf, conf):
         next_population[0] = best_individual
         population = next_population
         fg.append(best_individual.fitness)
+
+        print(f"That is all for Generation {generation} for stock {conf['symbol']}")
 
     # Print the table
     print(table)
