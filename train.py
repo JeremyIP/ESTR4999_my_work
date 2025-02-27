@@ -141,8 +141,10 @@ def mutation(chromosome, mutation_rate):
 
 
 def genetic_algorithm(training_conf, conf):
+    print("Doing GA: ")
     population = create_initial_population(conf)
     print(population)
+    print("Initialized population")
     print("\n")
     
     best_performers = []
