@@ -51,10 +51,8 @@ def fitness_function(ind, training_conf, conf):
     test_loss = model.custom_losses[-1]
     print(test_loss)
 
-    ind.fitness = -1
-    
-    # TO DO 
-    # ind.fitness = -1 * test_loss # min MSE == max -MSE 
+
+    ind.fitness = -1 * test_loss # min MSE == max -MSE 
 
 def create_initial_population(conf):
     population = []
@@ -174,7 +172,7 @@ def genetic_algorithm(training_conf, conf):
             parent1 = population[i]
             parent2 = population[i + 1]
 
-            if (generation == (conf['total_generations']//2)) or ((len(fg) >= 2) and ((fg[-1]-fg[-2]) == 0)): # // TO DO 
+            if (generation == (conf['total_generations']//2)): #or ((len(fg) >= 2) and ((fg[-1]-fg[-2]) == 0)): # // TO DO 
                 parent1 = intra_chromosome_crossover(parent1, conf['total_n_features'], conf['n_hyperparameters'])
 
             child1, child2 = inter_chromosome_crossover(parent1, parent2, conf['total_n_features'], conf['n_hyperparameters'])

@@ -100,7 +100,7 @@ class DenseRMoK(nn.Module):
         self.num_experts_selected = sum(KAN_experts_list_01)
         self.KAN_experts_list_01 = KAN_experts_list_01
         self.drop = drop
-        self.revin_affine = self.revin_affine
+        self.revin_affine = revin_affine
 
         self.gate = nn.Linear(self.hist_len, self.num_experts_selected)
         self.softmax = nn.Softmax(dim=-1)
