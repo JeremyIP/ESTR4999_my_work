@@ -200,7 +200,7 @@ def genetic_algorithm(training_conf, conf):
         population = next_population
         fg.append(best_individual.fitness)
 
-        print(f"That is all for Generation {generation} for stock {conf['dataset_name']}")
+        print(f"That is all for Generation {generation+1} for stock {conf['dataset_name']}")
 
     # Print the table
     print(table)
@@ -396,6 +396,6 @@ if __name__ == '__main__':
         print(args.KAN_experts_list_01)
 
         print("Optimal model is finally trained below: ")
-        trainer, data_module, model = train_init(training_conf, **vars(args))
+        trainer, data_module, model = train_init(training_conf, vars(args))
         trainer, data_module, model = train_func(trainer, data_module, model)
         print("\n")
