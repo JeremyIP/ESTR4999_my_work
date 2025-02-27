@@ -200,7 +200,7 @@ def genetic_algorithm(training_conf, conf):
         population = next_population
         fg.append(best_individual.fitness)
 
-        print(f"That is all for Generation {generation} for stock {conf['symbol']}")
+        print(f"That is all for Generation {generation} for stock {conf['dataset_name']}")
 
     # Print the table
     print(table)
