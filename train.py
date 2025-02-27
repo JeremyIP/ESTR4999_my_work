@@ -390,7 +390,6 @@ if __name__ == '__main__':
         print("After GA: ")
         print(args.var_num)
         print(args.indicators_list_01)
-        print(args.var_num)
         print(args.hist_len)
         print(args.hist_len_list_01)
         print(args.KAN_experts_list_01)
