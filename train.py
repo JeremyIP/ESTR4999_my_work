@@ -20,7 +20,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-seed_value = 42
+seed_value = 4998
 random.seed(seed_value)
 
 # Define a basic structure for Chromosome and Population
