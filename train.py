@@ -44,7 +44,11 @@ def decode(ind):
 
 def fitness_function(ind, training_conf, conf):
     conf['var_num'], conf['indicators_list_01'], conf['hist_len'], conf['hist_len_list_01'], conf['args.KAN_experts_list_01'] = decode(ind)
-    print(conf['var_num'], conf['indicators_list_01'], conf['hist_len'], conf['hist_len_list_01'], conf['args.KAN_experts_list_01'])
+    print(f"{conf['var_num']} features are selected")
+    print(conf['indicators_list_01'])
+    print(f"window size: {conf['hist_len']}")
+    print(['hist_len_list_01'])
+    print("Experts T, W, J, C, R, N", conf['args.KAN_experts_list_01'])
 
     trainer, data_module, model = train_init(training_conf, conf)
     trainer, data_module, model = train_func(trainer, data_module, model)
@@ -346,7 +350,7 @@ if __name__ == '__main__':
     parser.add_argument("--num_workers", default=10, type=int, help="Number of workers for data loading")
 
     parser.add_argument("--population_size", default=10, type=int, help="Population Size for GA")
-    parser.add_argument("--total_generations", default=5, type=int, help="Total number of generations for GA")
+    parser.add_argument("--total_generations", default=2, type=int, help="Total number of generations for GA")
     parser.add_argument("--total_n_features", default=50, type=int, help="Total number of features for GA")
     parser.add_argument("--max_hist_len", default=128, type=int, help="Maximum window size allowed")
     parser.add_argument("--n_KAN_experts", default=6, type=int, help="Number of KAN experts to be used")
