@@ -44,15 +44,15 @@ def decode(ind):
 
 def fitness_function(ind, training_conf, conf):
     args.var_num, args.indicators_list_01, args.hist_len, args.hist_len_list_01, args.KAN_experts_list_01 = decode(ind)
+    print(args.var_num, args.indicators_list_01, args.hist_len, args.hist_len_list_01, args.KAN_experts_list_01)
 
     trainer, data_module, model = train_init(training_conf, conf)
     trainer, data_module, model = train_func(trainer, data_module, model)
 
     test_loss = model.custom_losses[-1]
-    print(test_loss)
-
-
     ind.fitness = -1 * test_loss # min MSE == max -MSE 
+
+    print("Done fitness once")
 
 def create_initial_population(conf):
     population = []
@@ -157,7 +157,7 @@ def genetic_algorithm(training_conf, conf):
 
         fit_list = [fitness_function(ind, training_conf, conf) for ind in population]
         print(f"Fitness list in Generation {generation}:", fit_list)
-        
+
         # Store the best performer of the current generation
         best_individual = max(population, key=lambda ch: ch.fitness)
         best_performers.append((best_individual, best_individual.fitness))
