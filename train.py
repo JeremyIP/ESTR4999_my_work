@@ -47,7 +47,7 @@ def fitness_function(ind, training_conf, conf):
     print(f"{conf['var_num']} features are selected")
     print(conf['indicators_list_01'])
     print(f"window size: {conf['hist_len']}")
-    print(['hist_len_list_01'])
+    print(conf['hist_len_list_01'])
     print("Experts T, W, J, C, R, N", conf['args.KAN_experts_list_01'])
 
     trainer, data_module, model = train_init(training_conf, conf)
