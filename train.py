@@ -12,7 +12,7 @@ from lightning.pytorch.callbacks import Callback
 from core.data_runner import DataInterface
 from core.ltsf_runner import LTSFRunner
 from core.util import cal_conf_hash
-from core.util import load_module_from_path
+
 
 import random
 from prettytable import PrettyTable
