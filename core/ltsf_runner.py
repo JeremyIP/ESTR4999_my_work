@@ -35,6 +35,7 @@ class LTSFRunner(L.LightningModule):
 
         # To record the train and val loss for each epoch 
         self.train_losses = []
+        self.test_losses = []
 
     def evaluate_trading_strategy(self, predictions_tomorrow, true_prices_tomorrow, true_prices_today):
         """
@@ -143,6 +144,7 @@ class LTSFRunner(L.LightningModule):
         mae = torch.nn.functional.l1_loss(prediction, label)
         mse = torch.nn.functional.mse_loss(prediction, label)
         custom_loss = self.loss_function(prediction, label, true_price_today, confidence)
+        self.test_losses.append(custom_loss.item())
         mean_error_percentage = torch.mean(torch.abs((label - prediction) / label) * 100)
         self.log('test/mae', mae, on_step=False, on_epoch=True, sync_dist=True)
         self.log('test/mse', mse, on_step=False, on_epoch=True, sync_dist=True)
@@ -259,7 +261,7 @@ class LTSFRunner(L.LightningModule):
     def test_plot_losses(self):
         # Plot the loss values after training is complete
         plt.figure(figsize=(10, 5))
-        plt.plot(range(1, len(self.custom_losses) + 1), self.custom_losses, marker='o', label='Test Loss')
+        plt.plot(range(1, len(self.test_losses) + 1), self.test_losses, marker='o', label='Test Loss')
         plt.xlabel('Epoch')
         plt.ylabel('Loss')
         plt.title('Testing Loss vs Epoch')
