@@ -20,7 +20,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-seed_value = 4998
+seed_value = 4999
 random.seed(seed_value)
 
 # Define a basic structure for Chromosome and Population
@@ -48,6 +48,7 @@ def fitness_function(ind, training_conf, conf):
     print(conf['indicators_list_01'])
     print(f"window size: {conf['hist_len']}")
     print(conf['hist_len_list_01'])
+
     print("Experts T, W, J, C, R, N", conf['args.KAN_experts_list_01'])
 
     trainer, data_module, model = train_init(training_conf, conf)
@@ -370,7 +371,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     args.max_hist_len_n_bit = math.floor(math.log2(args.max_hist_len))
-    print(args.max_hist_len_n_bit)
     args.n_hyperparameters = args.max_hist_len_n_bit + args.n_KAN_experts
     
     for symbol in ticker_symbols:
