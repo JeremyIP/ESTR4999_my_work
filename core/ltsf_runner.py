@@ -120,6 +120,8 @@ class LTSFRunner(L.LightningModule):
         prediction, confidence = self.model(var_x, marker_x)
         prediction = prediction[:, -self.hparams.pred_len:, :]
         # true_price_today is now directly taken from the closing price, which is at index 3 in the original var_x.
+        print(var_x.shape)
+        print(var_x)
         true_price_today = var_x[:, -1, 3]
         # print(f"prediction shape: {prediction.shape} and label shape {label.shape}")
         # print(f"prediction value: \n {prediction}")
