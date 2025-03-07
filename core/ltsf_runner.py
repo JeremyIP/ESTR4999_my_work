@@ -99,7 +99,7 @@ class LTSFRunner(L.LightningModule):
         """
         if hasattr(self, 'predictions_tomorrow') and hasattr(self, 'true_prices_tomorrow') and hasattr(self, 'true_prices_today'):
             # Evaluate the trading strategy using the full predictions and actual prices
-            print(self.true_prices_today)
+            #print(self.true_prices_today)
             evaluation_metrics = self.evaluate_trading_strategy(self.predictions_tomorrow, self.true_prices_tomorrow, self.true_prices_today)
             
             # Log the trading strategy evaluation metrics
@@ -121,7 +121,6 @@ class LTSFRunner(L.LightningModule):
         prediction = prediction[:, -self.hparams.pred_len:, :]
         # true_price_today is now directly taken from the closing price, which is at index 3 in the original var_x.
         print(var_x.shape)
-        print(var_x)
         true_price_today = var_x[:, -1, 3]
         # print(f"prediction shape: {prediction.shape} and label shape {label.shape}")
         # print(f"prediction value: \n {prediction}")
