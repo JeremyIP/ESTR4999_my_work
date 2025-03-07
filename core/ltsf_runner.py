@@ -99,6 +99,7 @@ class LTSFRunner(L.LightningModule):
         """
         if hasattr(self, 'predictions_tomorrow') and hasattr(self, 'true_prices_tomorrow') and hasattr(self, 'true_prices_today'):
             # Evaluate the trading strategy using the full predictions and actual prices
+            print(self.true_prices_today)
             evaluation_metrics = self.evaluate_trading_strategy(self.predictions_tomorrow, self.true_prices_tomorrow, self.true_prices_today)
             
             # Log the trading strategy evaluation metrics
