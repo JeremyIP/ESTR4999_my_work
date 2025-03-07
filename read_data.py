@@ -40,7 +40,6 @@ for ticker_symbol in ticker_symbols:
     
     stock_series.index = stock_series.index.tz_localize(None)  # Remove timezone
 
-
     # Rename columns to the desired format
     stock_data[ticker_symbol] = stock_series  # Store the smoothed data in the dictionary
 
@@ -335,10 +334,3 @@ for stock in ticker_symbols:
 
     # Save the final combined data and normalized time markers
     np.savez(os.path.join(output_dir, f'feature.npz'), norm_var=combined_data.values, norm_time_marker=norm_time_marker)
-    '''
-    print("Stock:", stock)
-    print("Final combined data contains NaN?:", combined_data.isna().any().any())
-    print("Final combined data shape:", combined_data.shape)  
-    print("Data successfully saved.")
-    print("\n")
-    '''
