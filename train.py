@@ -194,6 +194,7 @@ def genetic_algorithm(training_conf, conf):
         table_each_generation = PrettyTable()
         table_each_generation.field_names = ["Chromosome ID", "Features", "Hyperparameters", "Fitness"]
         table_each_generation.add_row([index+1, ''.join(str(bit) for bit in element.genes['features']), ''.join(str(bit) for bit in element.genes['hyperparameters']), element.fitness] for index, element in list(enumerate(list_ind)))
+        table_each_generation.title = f"Generation {generation+1}"
         print(table_each_generation)
 
         # Store the best performer of the current generation
@@ -250,13 +251,13 @@ def genetic_algorithm(training_conf, conf):
     best_fitness_values = [fit[1] for fit in best_performers]
     min_fitness_values = [min([ch.fitness for ch in population]) for population in all_populations]
     max_fitness_values = [max([ch.fitness for ch in population]) for population in all_populations]
-    fig, ax = plt.subplots()
-    ax.plot(generations_list, best_fitness_values, label='Best Fitness', color='black')
-    ax.fill_between(generations_list, min_fitness_values, max_fitness_values, color='gray', alpha=0.5, label='Fitness Range')
-    ax.set_xlabel('Generation')
-    ax.set_ylabel('Fitness')
-    ax.set_title('Fitness Over Generations')
-    ax.legend()
+    fig, plt = plt.subplots()
+    plt.plot(generations_list, best_fitness_values, label='Best Fitness', color='black')
+    plt.fill_between(generations_list, min_fitness_values, max_fitness_values, color='gray', alpha=0.5, label='Fitness Range')
+    plt.xlabel('Generation')
+    plt.ylabel('Fitness')
+    plt.title('Fitness Over Generations')
+    plt.legend()
     plt.savefig(f'plots/GA/{conf["dataset_name"]}.png')
 
 
