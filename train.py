@@ -203,13 +203,13 @@ def genetic_algorithm(training_conf, conf):
             parent1 = population[i]
             parent2 = population[i + 1]
 
-            if (generation == (conf['total_generations']//2)): #or ((len(fg) >= 2) and (abs(fg[-1]-fg[-2]) >= 1e-3)): # // TO DO 
+            if ( generation == (conf['total_generations']//2) or ((len(fg) >= 2) and (abs(fg[-1]-fg[-2]) >= 1e-3)) ):
                 parent1 = intra_chromosome_crossover(parent1, conf['total_n_features'], conf['n_hyperparameters'], conf['max_hist_len_n_bit'], conf['n_KAN_experts'])
 
             child1, child2 = inter_chromosome_crossover(parent1, parent2, conf['total_n_features'], conf['n_hyperparameters'], conf['max_hist_len_n_bit'], conf['n_KAN_experts'])
 
             if len(fg) >= 2 and (fg[-1] - fg[-2]) >= 1e-3:
-                increment = 100 * mutation_rate[generation] / (fg[-1] - fg[-2])
+                increment = mutation_rate[generation] / (fg[-1] - fg[-2])
             else:
                 increment = 0
 
@@ -366,7 +366,7 @@ if __name__ == '__main__':
 
     parser.add_argument("--lr", default=0.001, type=float, help="Learning rate")
     parser.add_argument("--batch_size", default=32, type=int, help="Batch size")
-    parser.add_argument("--max_epochs", default=32, type=int, help="Maximum number of epochs")
+    parser.add_argument("--max_epochs", default=8, type=int, help="Maximum number of epochs")
     parser.add_argument("--optimizer", default="AdamW", type=str, help="Optimizer type")
     parser.add_argument("--optimizer_betas", default=(0.9, 0.999), type=eval, help="Optimizer betas")
     parser.add_argument("--optimizer_weight_decay", default=1e-2, type=float, help="Optimizer weight decay")
@@ -379,7 +379,7 @@ if __name__ == '__main__':
     parser.add_argument("--es_patience", default=10, type=int, help="Early stopping patience") # // Not used
     parser.add_argument("--num_workers", default=10, type=int, help="Number of workers for data loading")
 
-    parser.add_argument("--population_size", default=20, type=int, help="Population Size for GA")
+    parser.add_argument("--population_size", default=2, type=int, help="Population Size for GA")
     parser.add_argument("--total_generations", default=10, type=int, help="Total number of generations for GA")
     parser.add_argument("--total_n_features", default=50, type=int, help="Total number of features for GA") # // Check!
     parser.add_argument("--min_hist_len", default=4, type=int, help="Minimum window size allowed")
