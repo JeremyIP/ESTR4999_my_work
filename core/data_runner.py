@@ -42,7 +42,7 @@ class GeneralTSFDataset(Dataset):
 
         norm_var = norm_var[:, :, np.newaxis]  # (L, N, C)
         norm_time_marker = norm_time_marker[:, np.newaxis, :]  # L, -1, C, C = [tod, dow, dom, doy]
-        norm_closing = norm_closing[:, :, np.newaxis]
+        norm_closing = norm_closing[:, np.newaxis]
         
         return norm_var, norm_time_marker, norm_closing
 
