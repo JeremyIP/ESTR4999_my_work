@@ -22,12 +22,10 @@ class LTSFRunner(L.LightningModule):
         self.indicators_bool = kargs['indicators_list_01']
         self.dataset_name = kargs['dataset_name']
 
-        # Load the scaler info which should include 'min' and 'max'
         stat = np.load(os.path.join(self.hparams.data_root, 'var_scaler_info.npz'))
         self.register_buffer('min', torch.tensor(stat['min'][np.array(self.indicators_bool).astype(bool)]).float())
         self.register_buffer('max', torch.tensor(stat['max'][np.array(self.indicators_bool).astype(bool)]).float())
 
-        # To record the train and val loss for each epoch 
         self.train_losses = []
         self.test_losses = []
 
@@ -143,8 +141,8 @@ class LTSFRunner(L.LightningModule):
         mean_error_percentage = torch.mean(torch.abs((label - prediction) / label) * 100)
         self.log('test/mae', mae, on_step=False, on_epoch=True, sync_dist=True)
         self.log('test/mse', mse, on_step=False, on_epoch=True, sync_dist=True)
-        self.log('test/custom_loss', custom_loss, on_step=False, on_epoch=True, sync_dist=True)
-        self.log('test/error_percentage', mean_error_percentage, on_step=False, on_epoch=True, sync_dist=True)
+        self.log('test/custom_loss', custom_loss, on_step=True, on_epoch=True, sync_dist=True)
+        self.log('test/error_percentage', mean_error_percentage, on_step=False, on_epoch=True, prog_bar=True, sync_dist=True)
 
         predicted_price_tomorrow = prediction.item()
         true_price_tomorrow = label.item()
