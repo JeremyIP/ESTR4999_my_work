@@ -235,13 +235,13 @@ def genetic_algorithm(training_conf, conf):
 
     print(table)
 
-    '''
+
     generations_list = range(1, len(best_performers) + 1)
 
     # Plot the fitness values over generations
     best_fitness_values = [fit[1] for fit in best_performers]
-    min_fitness_values = [min([fitness_function(ind, training_conf, conf) for ind in population]) for population in all_populations]
-    max_fitness_values = [max([fitness_function(ind, training_conf, conf) for ind in population]) for population in all_populations]
+    min_fitness_values = [min([ch.fitness for ch in population]) for population in all_populations]
+    max_fitness_values = [max([ch.fitness for ch in population]) for population in all_populations]
     fig, ax = plt.subplots()
     ax.plot(generations_list, best_fitness_values, label='Best Fitness', color='black')
     ax.fill_between(generations_list, min_fitness_values, max_fitness_values, color='gray', alpha=0.5, label='Fitness Range')
@@ -249,9 +249,9 @@ def genetic_algorithm(training_conf, conf):
     ax.set_ylabel('Fitness')
     ax.set_title('Fitness Over Generations')
     ax.legend()
-    plt.savefig(f'plots/GA/{conf['dataset_name']}.png')
-    '''
+    plt.savefig(f'plots/GA/{conf["dataset_name"]}.png')
 
+    
     best_ch = max(population, key=lambda ch: ch.fitness) 
     var_num, indicators_list_01, hist_len, hist_len_list_01, KAN_experts_list_01 = decode(best_ch, conf)
 
