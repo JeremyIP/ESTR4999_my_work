@@ -56,12 +56,13 @@ class GeneralTSFDataset(Dataset):
 
         #var_y = self.var[hist_end:pred_end, 3, 0]
         var_y = self.norm_closing[hist_end:pred_end, ...]
+        var_y = var_y[:, np.newaxis]  # Shape: (pred_len, 1, 1)
         marker_y = self.time_marker[hist_end:pred_end, ...]
 
-        var_y = var_y[:, np.newaxis]  # Shape: (pred_len, 1, 1)
+        true = self.norm_closing[:, :, np.newaxis][hist_start:hist_end, ...]
 
-        #print("Var_x, Var_y", var_x.shape, var_y.shape)
-        return var_x, marker_x, var_y, marker_y
+        print("A", true.shape)
+        return var_x, marker_x, var_y, marker_y, true
 
     def __len__(self):
         return len(self.var) - (self.hist_len + self.pred_len) + 1

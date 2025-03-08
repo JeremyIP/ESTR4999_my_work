@@ -100,7 +100,7 @@ class LTSFRunner(L.LightningModule):
             util.plot_confidence_vs_loss(self.confidences, self.custom_losses, self.predictions_tomorrow, self.true_prices_tomorrow, self.true_prices_today)
             
     def forward(self, batch, batch_idx):
-        var_x, marker_x, var_y, marker_y = [_.float() for _ in batch]
+        var_x, marker_x, var_y, marker_y, true = [_.float() for _ in batch]
 
         # Extract label from var_y.
         # (Note: var_y is already constructed to carry only the closing price information.)
@@ -111,9 +111,10 @@ class LTSFRunner(L.LightningModule):
         prediction = prediction[:, -self.hparams.pred_len:, :]
 
         # true_price_today is now directly taken from the closing price, which is at index 3 in the original var_x.
-        true_price_today = var_x[:, -1, 3]
+        true_price_today = true[:, -1, 0]
+        # var_x[:, -1, 3], 
 
-        print("label, true:", label.shape, true_price_today.shape)
+        print("B", true_price_today.shape)
         return prediction, label, true_price_today, confidence
 
 
