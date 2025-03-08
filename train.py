@@ -39,7 +39,6 @@ def decode(ind, conf):
     
     hist_len_list_01, KAN_experts_list_01 = ind.genes['hyperparameters'][:conf['max_hist_len_n_bit']], ind.genes['hyperparameters'][conf['max_hist_len_n_bit']:]
     hist_len = conf['min_hist_len'] + 4 * sum(bit << i for i, bit in enumerate(reversed(hist_len_list_01)))
-    #hist_len = conf['min_hist_len'] + 4 * int("".join(map(str, hist_len_list_01)), 2)
 
     return var_num, indicators_list_01, hist_len, hist_len_list_01, KAN_experts_list_01
 
@@ -204,7 +203,7 @@ def genetic_algorithm(training_conf, conf):
             parent1 = population[i]
             parent2 = population[i + 1]
 
-            if (generation == (conf['total_generations']//2)): #or ((len(fg) >= 2) and (abs(fg[-1]-fg[-2]) >= 1e-5)): # // TO DO 
+            if (generation == (conf['total_generations']//2)): #or ((len(fg) >= 2) and (abs(fg[-1]-fg[-2]) >= 1e-3)): # // TO DO 
                 parent1 = intra_chromosome_crossover(parent1, conf['total_n_features'], conf['n_hyperparameters'], conf['max_hist_len_n_bit'], conf['n_KAN_experts'])
 
             child1, child2 = inter_chromosome_crossover(parent1, parent2, conf['total_n_features'], conf['n_hyperparameters'], conf['max_hist_len_n_bit'], conf['n_KAN_experts'])

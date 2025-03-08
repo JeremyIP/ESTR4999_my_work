@@ -167,9 +167,6 @@ class DenseRMoK(nn.Module):
         var_x = self.dropout(var_x).transpose(1, 2).reshape(B * N, L)
 
         score = F.softmax(self.gate(var_x), dim=-1)  # (BxN, E)
-        print(score.shape)
-        print(score)
-        
         expert_outputs = torch.stack([self.experts[i](var_x) for i in range(self.num_experts_selected)], dim=-1)  # (BxN, Lo, E)
 
         prediction = torch.einsum("BLE,BE->BL", expert_outputs, score).reshape(B, N, -1).permute(0, 2, 1)
