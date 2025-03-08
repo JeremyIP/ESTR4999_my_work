@@ -114,7 +114,7 @@ class LTSFRunner(L.LightningModule):
         true_price_today = true[:, -1, 0]
         # var_x[:, -1, 3], 
 
-        print("B", true_price_today.shape)
+        print(true_price_today)
         return prediction, label, true_price_today, confidence
 
 

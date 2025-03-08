@@ -61,7 +61,6 @@ class GeneralTSFDataset(Dataset):
 
         true = self.norm_closing[:, :, np.newaxis][hist_start:hist_end, ...]
 
-        print("A", true.shape)
         return var_x, marker_x, var_y, marker_y, true
 
     def __len__(self):
