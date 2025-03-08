@@ -267,12 +267,12 @@ class TrainLossLoggerCallback(Callback):
 class TestLossLoggerCallback(Callback):
     def __init__(self):
         super().__init__()
-        self.test_losses = []
+        self.custom_losses = []
 
     def on_test_epoch_end(self, trainer, pl_module):
         avg_loss = trainer.callback_metrics.get('test/custom_loss')
         if avg_loss is not None:
-            self.test_losses.append(avg_loss.item())
+            self.custom_losses.append(avg_loss.item())
             print(f", Average Test Loss = {avg_loss.item():.4f}")
 
 
