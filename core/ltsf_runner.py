@@ -112,6 +112,8 @@ class LTSFRunner(L.LightningModule):
 
         # true_price_today is now directly taken from the closing price, which is at index 3 in the original var_x.
         true_price_today = var_x[:, -1, 3]
+
+        #print("label, true:", label.shape, true_price_today.shape)
         return prediction, label, true_price_today, confidence
 
 
