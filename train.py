@@ -263,7 +263,26 @@ class TrainLossLoggerCallback(Callback):
             # Append the average loss to the list
             self.train_losses.append(avg_loss.item())
             # Print the average loss for the epoch
-            print(f"Epoch {trainer.current_epoch + 1}: Average Train Loss = {avg_loss.item():.4f}")
+            print(f"Average Train Loss = {avg_loss.item():.4f}")
+
+class TestLossLoggerCallback(Callback):
+    def __init__(self):
+        super().__init__()
+        self.test_losses = []
+
+    def on_test_epoch_end(self, trainer, pl_module):
+        """
+        Called at the end of the training epoch.
+        Collects the average training loss and appends it to the train_losses list.
+        """
+        # Retrieve the average training loss from callback_metrics
+        avg_loss = trainer.callback_metrics.get('test/loss')
+        if avg_loss is not None:
+            # Append the average loss to the list
+            self.test_losses.append(avg_loss.item())
+            # Print the average loss for the epoch
+            print(f"Average Test Loss = {avg_loss.item():.4f}")
+
 
 def train_init(hyper_conf, conf):
     if hyper_conf is not None:
@@ -294,7 +313,8 @@ def train_init(hyper_conf, conf):
         #     patience=conf["es_patience"],
         # ),
         LearningRateMonitor(logging_interval="epoch"),
-        TrainLossLoggerCallback(), # Modified Code to invoke call back to print the loss per epoch
+        TrainLossLoggerCallback(),
+        TestLossLoggerCallback(), 
     ]
 
 
@@ -304,9 +324,9 @@ def train_init(hyper_conf, conf):
         logger=run_logger,
         callbacks=callbacks,
         max_epochs=conf["max_epochs"],
-        gradient_clip_algorithm=conf["gradient_clip_algorithm"] if "gradient_clip_algorithm" in conf else "norm",
-        gradient_clip_val=conf["gradient_clip_val"],
-        default_root_dir=conf["save_root"],
+        gradient_clip_algorithm=conf["gradient_clip_algorithm"] if "gradient_clip_algorithm" in conf else "norm", # Not used
+        gradient_clip_val=conf["gradient_clip_val"], # Not used
+        default_root_dir=conf["save_root"], 
         limit_val_batches=0, # Disable validation
         check_val_every_n_epoch=0, # No validation every n epoch
     )
@@ -318,7 +338,6 @@ def train_init(hyper_conf, conf):
 
 def train_func(trainer, data_module, model):
     trainer.fit(model=model, datamodule=data_module)
-    #trainer.test(model, datamodule=data_module, ckpt_path='best')
     trainer.test(model, datamodule=data_module)
 
     model.train_plot_losses()
