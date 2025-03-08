@@ -368,7 +368,7 @@ if __name__ == '__main__':
 
     parser.add_argument("--lr", default=0.001, type=float, help="Learning rate")
     parser.add_argument("--batch_size", default=32, type=int, help="Batch size")
-    parser.add_argument("--max_epochs", default=8, type=int, help="Maximum number of epochs")
+    parser.add_argument("--max_epochs", default=4, type=int, help="Maximum number of epochs")
     parser.add_argument("--optimizer", default="AdamW", type=str, help="Optimizer type")
     parser.add_argument("--optimizer_betas", default=(0.9, 0.999), type=eval, help="Optimizer betas")
     parser.add_argument("--optimizer_weight_decay", default=1e-2, type=float, help="Optimizer weight decay")
@@ -382,7 +382,7 @@ if __name__ == '__main__':
     parser.add_argument("--num_workers", default=10, type=int, help="Number of workers for data loading")
 
     parser.add_argument("--population_size", default=4, type=int, help="Population Size for GA")
-    parser.add_argument("--total_generations", default=10, type=int, help="Total number of generations for GA")
+    parser.add_argument("--total_generations", default=3, type=int, help="Total number of generations for GA")
     parser.add_argument("--total_n_features", default=50, type=int, help="Total number of features for GA") # // Check!
     parser.add_argument("--min_hist_len", default=4, type=int, help="Minimum window size allowed")
     parser.add_argument("--max_hist_len", default=64, type=int, help="Maximum window size allowed")
