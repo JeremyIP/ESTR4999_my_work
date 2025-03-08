@@ -258,7 +258,7 @@ def genetic_algorithm(training_conf, conf):
     plt.ylabel('Fitness')
     plt.title('Fitness Over Generations')
     plt.legend()
-    plt.savefig(f'plots/GA/{conf["dataset_name"]}.png')
+    plt.savefig(f'plots/GA_{conf["dataset_name"]}.png')
 
 
     best_ch = max(population, key=lambda ch: ch.fitness) 
