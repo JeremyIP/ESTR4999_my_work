@@ -186,6 +186,7 @@ def genetic_algorithm(training_conf, conf):
     table.field_names = ["Generation", "Features", "Hyperparameters", "Fitness"]
 
     for generation in range(conf['total_generations']):
+        print(f"Start Generation {generation}")
 
         _ = [fitness_function(ind, training_conf, conf) for ind in population]
 
@@ -251,7 +252,7 @@ def genetic_algorithm(training_conf, conf):
     ax.legend()
     plt.savefig(f'plots/GA/{conf["dataset_name"]}.png')
 
-    
+
     best_ch = max(population, key=lambda ch: ch.fitness) 
     var_num, indicators_list_01, hist_len, hist_len_list_01, KAN_experts_list_01 = decode(best_ch, conf)
 
