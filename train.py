@@ -374,7 +374,7 @@ if __name__ == '__main__':
     parser.add_argument("--optimizer_betas", default=(0.9, 0.999), type=eval, help="Optimizer betas")
     parser.add_argument("--optimizer_weight_decay", default=1e-4, type=float, help="Optimizer weight decay")
     parser.add_argument("--lr_scheduler", default='StepLR', type=str, help="Learning rate scheduler")
-    parser.add_argument("--lr_step_size", default=16, type=int, help="Learning rate step size")
+    parser.add_argument("--lr_step_size", default=32, type=int, help="Learning rate step size")
     parser.add_argument("--lr_gamma", default=0.64, type=float, help="Learning rate gamma")
     parser.add_argument("--gradient_clip_val", default=5, type=float, help="Gradient clipping value") # // Not used
     parser.add_argument("--val_metric", default="val/loss", type=str, help="Validation metric")
