@@ -39,10 +39,13 @@ class GeneralTSFDataset(Dataset):
         norm_var = norm_var[border1:border2]
         norm_time_marker = norm_time_marker[border1:border2]
         norm_closing = norm_closing[border1:border2]
+        print(norm_closing.shape)
 
         norm_var = norm_var[:, :, np.newaxis]  # (L, N, C)
         norm_time_marker = norm_time_marker[:, np.newaxis, :]  # L, -1, C, C = [tod, dow, dom, doy]
         norm_closing = norm_closing[:, np.newaxis]
+
+        print(norm_closing.shape)
         
         return norm_var, norm_time_marker, norm_closing
 
@@ -60,7 +63,7 @@ class GeneralTSFDataset(Dataset):
 
         var_y = var_y[:, np.newaxis, np.newaxis]  # Shape: (pred_len, 1, 1)
 
-        print(var_x.shape, var_y.shape)
+        print(var_y.shape)
         return var_x, marker_x, var_y, marker_y
 
     def __len__(self):
