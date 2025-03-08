@@ -208,11 +208,9 @@ def genetic_algorithm(training_conf, conf):
 
             child1, child2 = inter_chromosome_crossover(parent1, parent2, conf['total_n_features'], conf['n_hyperparameters'], conf['max_hist_len_n_bit'], conf['n_KAN_experts'])
 
-            # Calculate increment
-            # // TO DO if len(fg) >= 2 and (fg[-1] - fg[-2]) != 0:
-                # // TO DO increment = 100 * mutation_rate[generation] / (fg[-1] - fg[-2]) # TO DO
-            # // TO DO else:
-            if True:
+            if len(fg) >= 2 and (fg[-1] - fg[-2]) >= 1e-3:
+                increment = 100 * mutation_rate[generation] / (fg[-1] - fg[-2])
+            else:
                 increment = 0
 
             if increment > 0:
@@ -368,7 +366,7 @@ if __name__ == '__main__':
 
     parser.add_argument("--lr", default=0.001, type=float, help="Learning rate")
     parser.add_argument("--batch_size", default=32, type=int, help="Batch size")
-    parser.add_argument("--max_epochs", default=64, type=int, help="Maximum number of epochs")
+    parser.add_argument("--max_epochs", default=32, type=int, help="Maximum number of epochs")
     parser.add_argument("--optimizer", default="AdamW", type=str, help="Optimizer type")
     parser.add_argument("--optimizer_betas", default=(0.9, 0.999), type=eval, help="Optimizer betas")
     parser.add_argument("--optimizer_weight_decay", default=1e-2, type=float, help="Optimizer weight decay")
