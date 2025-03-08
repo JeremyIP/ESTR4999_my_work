@@ -223,8 +223,8 @@ def genetic_algorithm(training_conf, conf):
 
             mutation_rate.append(mg)
 
-            next_population.append(mutation(child1, mg, conf['total_n_features']), conf['max_hist_len_n_bit'], conf['n_KAN_experts'])
-            next_population.append(mutation(child2, mg, conf['total_n_features']), conf['max_hist_len_n_bit'], conf['n_KAN_experts'])
+            next_population.append(mutation(child1, mg, conf['total_n_features'], conf['max_hist_len_n_bit'], conf['n_KAN_experts']))
+            next_population.append(mutation(child2, mg, conf['total_n_features'], conf['max_hist_len_n_bit'], conf['n_KAN_experts']))
 
         # Replace the old population with the new one, preserving the best individual
         next_population[0] = best_individual
@@ -233,15 +233,9 @@ def genetic_algorithm(training_conf, conf):
 
         print(f"That is all for Generation {generation+1} for stock {conf['dataset_name']}")
 
-    # Print the table
     print(table)
 
-    # Plot the population of one generation (last generation)
-    #final_population = all_populations[-1]
-    #final_fitnesses = [fitness_function(ind, training_conf, conf) for ind in final_population]
-
     '''
-    # Plot the values of a, b, and c over generations
     generations_list = range(1, len(best_performers) + 1)
 
     # Plot the fitness values over generations
@@ -255,7 +249,7 @@ def genetic_algorithm(training_conf, conf):
     ax.set_ylabel('Fitness')
     ax.set_title('Fitness Over Generations')
     ax.legend()
-    plt.savefig('plots/GA.png')
+    plt.savefig(f'plots/GA/{conf['dataset_name']}.png')
     '''
 
     best_ch = max(population, key=lambda ch: ch.fitness) 
