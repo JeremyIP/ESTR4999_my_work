@@ -54,8 +54,8 @@ class GeneralTSFDataset(Dataset):
         var_x = self.var[hist_start:hist_end, ...]
         marker_x = self.time_marker[hist_start:hist_end, ...]
 
-        #var_y = self.var[hist_end:pred_end, 3, 0]
-        var_y = self.norm_closing[hist_start:hist_end, ...]
+        var_y = self.var[hist_end:pred_end, 3, 0]
+        #var_y = self.norm_closing[hist_start:hist_end, ...]
         marker_y = self.time_marker[hist_end:pred_end, ...]
 
         var_y = var_y[:, np.newaxis, np.newaxis]  # Shape: (pred_len, 1, 1, 1)
