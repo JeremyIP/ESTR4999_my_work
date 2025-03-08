@@ -120,7 +120,6 @@ class LTSFRunner(L.LightningModule):
         loss = self.loss_function(*self.forward(batch, batch_idx))
         self.log('train/loss', loss, on_step=True, on_epoch=True, prog_bar=True, sync_dist=True)
         self.train_losses.append(loss.item())
-        print(loss)
         return loss
 
     def validation_step(self, batch, batch_idx):

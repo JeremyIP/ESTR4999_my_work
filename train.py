@@ -54,7 +54,6 @@ def fitness_function(ind, training_conf, conf):
     trainer, data_module, model = train_init(training_conf, conf)
     trainer, data_module, model = train_func(trainer, data_module, model)
 
-    #print(model.train_losses)
     test_loss = model.test_losses[-1]
     ind.fitness = -1 * test_loss # min MSE == max -MSE 
 
