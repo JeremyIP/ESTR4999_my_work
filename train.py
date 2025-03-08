@@ -322,7 +322,7 @@ def train_init(hyper_conf, conf):
 
 def train_func(trainer, data_module, model):
     trainer.fit(model=model, datamodule=data_module)
-    trainer.test(model, datamodule=data_module)
+    trainer.test(model=model, datamodule=data_module)
 
     model.train_plot_losses()
     model.test_plot_losses()

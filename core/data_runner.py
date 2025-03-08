@@ -7,12 +7,7 @@ from torch.utils.data import Dataset
 
 
 class GeneralTSFDataset(Dataset):
-    """
-    General TSF Dataset.
-    """
-
-    def __init__(self, data_root, dataset_name, hist_len, pred_len, data_split, freq, indicators_bool, mode): # , features_mask):
-        #self.data_dir = os.path.join(data_root, dataset_name)
+    def __init__(self, data_root, hist_len, pred_len, data_split, freq, indicators_bool, mode):
         self.data_dir = data_root
         self.hist_len = hist_len
         self.pred_len = pred_len
@@ -27,15 +22,11 @@ class GeneralTSFDataset(Dataset):
         self.set_type = mode_map[mode]
         self.var, self.time_marker = self.__read_data__()
 
-        
-
     def __read_data__(self):
         norm_feature_path = os.path.join(self.data_dir, 'feature.npz')
         norm_feature = np.load(norm_feature_path)
 
-        #norm_var = norm_feature['norm_var']
         norm_var = norm_feature['norm_var'][:, np.array(self.indicators_bool).astype(bool)]
-   
         norm_time_marker = norm_feature['norm_time_marker']
 
         border1s = [0, self.train_len, self.train_len + self.val_len]
@@ -76,7 +67,6 @@ class GeneralTSFDataset(Dataset):
 def data_provider(config, mode):
     return GeneralTSFDataset(
         data_root=config['data_root'],
-        dataset_name=config['dataset_name'],
         hist_len=config['hist_len'],
         pred_len=config['pred_len'],
         data_split=config['data_split'],
@@ -87,7 +77,6 @@ def data_provider(config, mode):
 
 
 class DataInterface(pl.LightningDataModule):
-
     def __init__(self, **kwargs):
         super().__init__()
         self.num_workers = kwargs['num_workers']

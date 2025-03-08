@@ -86,12 +86,8 @@ class LTSFRunner(L.LightningModule):
         return evaluation_metrics
     
     def on_test_epoch_end(self):
-        """
-        After all test steps, evaluate the trading strategy using accumulated predictions and actual prices.
-        """
         if hasattr(self, 'predictions_tomorrow') and hasattr(self, 'true_prices_tomorrow') and hasattr(self, 'true_prices_today'):
             # Evaluate the trading strategy using the full predictions and actual prices
-            #print(self.true_prices_today)
             evaluation_metrics = self.evaluate_trading_strategy(self.predictions_tomorrow, self.true_prices_tomorrow, self.true_prices_today)
             
             # Log the trading strategy evaluation metrics
