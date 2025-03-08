@@ -101,19 +101,20 @@ class LTSFRunner(L.LightningModule):
             
     def forward(self, batch, batch_idx):
         var_x, marker_x, var_y, marker_y = [_.float() for _ in batch]
+
         # Extract label from var_y.
         # (Note: var_y is already constructed to carry only the closing price information.)
         label = var_y[:, -self.hparams.pred_len:, :, 0]
+
         # Now, call the model and keep all output channels (which is only 1 channel now).
         prediction, confidence = self.model(var_x, marker_x)
         prediction = prediction[:, -self.hparams.pred_len:, :]
+
         # true_price_today is now directly taken from the closing price, which is at index 3 in the original var_x.
         true_price_today = var_x[:, -1, 3]
-        # print(f"prediction shape: {prediction.shape} and label shape {label.shape}")
-        # print(f"prediction value: \n {prediction}")
-        # print(f"label value: \n {label}")
+
         return prediction, label, true_price_today, confidence
-        # return prediction, label
+
 
     def training_step(self, batch, batch_idx):
         loss = self.loss_function(*self.forward(batch, batch_idx))
@@ -127,8 +128,6 @@ class LTSFRunner(L.LightningModule):
         return loss
 
     def test_step(self, batch, batch_idx):
-        # prediction shape: torch.Size([1, 1, 1]), label shape: torch.Size([1, 1, 1])
-        # prediction, label = self.forward(batch, batch_idx)
         prediction, label, true_price_today, confidence = self.forward(batch, batch_idx)
         mae = torch.nn.functional.l1_loss(prediction, label)
         mse = torch.nn.functional.mse_loss(prediction, label)
@@ -234,7 +233,6 @@ class LTSFRunner(L.LightningModule):
         return Model(**model_args_instance)
 
     def train_plot_losses(self):
-        # Plot the loss values after training is complete
         plt.figure(figsize=(10, 5))
         plt.plot(range(1, len(self.train_losses) + 1), self.train_losses, marker='o', label='Train Loss')
         plt.xlabel('Epoch')
@@ -246,7 +244,6 @@ class LTSFRunner(L.LightningModule):
         plt.close()
 
     def test_plot_losses(self):
-        # Plot the loss values after training is complete
         plt.figure(figsize=(10, 5))
         plt.plot(range(1, len(self.test_losses) + 1), self.test_losses, marker='o', label='Test Loss')
         plt.xlabel('Epoch')

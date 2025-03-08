@@ -44,18 +44,13 @@ class GeneralTSFDataset(Dataset):
         hist_start = index
         hist_end = index + self.hist_len
         pred_end = hist_end + self.pred_len
+
         var_x = self.var[hist_start:hist_end, ...]
         marker_x = self.time_marker[hist_start:hist_end, ...]
 
-        #print(f"Index: {index}, Hist Range: {hist_start}-{hist_end}, Pred Range: {hist_end}-{pred_end}")
-        #var_y = self.var[hist_end:pred_end, ...]
-        # Modified code, assume close price index is at 3
         var_y = self.var[hist_end:pred_end, 3, 0]
-        #print("Extracted var_y (close price) for index:", index, var_y)
-
         marker_y = self.time_marker[hist_end:pred_end, ...]
 
-        # Modified code: Adjust var_y shape to (pred_len, N=1, C=1) for consistency
         var_y = var_y[:, np.newaxis, np.newaxis]  # Shape: (pred_len, 1, 1)
 
         return var_x, marker_x, var_y, marker_y

@@ -74,6 +74,11 @@ def create_initial_population(conf):
 
         hist_len_list_01 = [random.choice([0, 1]) for _ in range(conf['max_hist_len_n_bit'])] 
         KAN_experts_list_01 = [random.choice([0, 1]) for _ in range(conf['n_KAN_experts'])] 
+
+        if sum(KAN_experts_list_01)==0:
+            index_to_set = random.randint(0, conf['n_KAN_experts'] - 1)
+            KAN_experts_list_01 = [1 if i == index_to_set else 0 for i in range(conf['n_KAN_experts'])]
+
         hyperparameters = hist_len_list_01 + KAN_experts_list_01
 
         population.append(Chromosome(features, hyperparameters))
@@ -88,7 +93,7 @@ def selection(population, all_fitnesses, tournament_size=3):
         selected.append(winner)
     return selected
 
-def intra_chromosome_crossover(ch1, n_features, n_hyperparameters):
+def intra_chromosome_crossover(ch1, n_features, n_hyperparameters, max_hist_len_n_bit, n_KAN_experts):
     n = min(n_features, n_hyperparameters)
 
     features_filter = [1] * n + [0] * (n_features - n)
@@ -104,11 +109,15 @@ def intra_chromosome_crossover(ch1, n_features, n_hyperparameters):
         ch1.genes['features'][idx], ch1.genes['hyperparameters'][swap_index] = ch1.genes['hyperparameters'][swap_index], ch1.genes['features'][idx]
     
     ch1.genes['features'][n_features-14:n_features-14+5] = [1, 1, 1, 1, 1] 
-    
+
+    if sum(ch1.genes['hyperparameters'][max_hist_len_n_bit:])==0:
+        index_to_set = random.randint(0, n_KAN_experts - 1)
+        ch1.genes['hyperparameters'][max_hist_len_n_bit:] = [1 if i == index_to_set else 0 for i in range(n_KAN_experts)]
+
     print("Intra Chromosome Crossover applied")
     return ch1
 
-def inter_chromosome_crossover(ch1, ch2, n_features, n_hyperparameters):
+def inter_chromosome_crossover(ch1, ch2, n_features, n_hyperparameters, max_hist_len_n_bit, n_KAN_experts):
 
     features1 = ch1.genes['features']
     hyperparameters1 = ch1.genes['hyperparameters']
@@ -131,10 +140,18 @@ def inter_chromosome_crossover(ch1, ch2, n_features, n_hyperparameters):
     ch1.genes['features'][n_features-14:n_features-14+5] = [1, 1, 1, 1, 1] 
     ch2.genes['features'][n_features-14:n_features-14+5] = [1, 1, 1, 1, 1] 
 
+    if sum(ch1.genes['hyperparameters'][max_hist_len_n_bit:])==0:
+        index_to_set = random.randint(0, n_KAN_experts - 1)
+        ch1.genes['hyperparameters'][max_hist_len_n_bit:] = [1 if i == index_to_set else 0 for i in range(n_KAN_experts)]
+
+    if sum(ch2.genes['hyperparameters'][max_hist_len_n_bit:])==0:
+        index_to_set = random.randint(0, n_KAN_experts - 1)
+        ch2.genes['hyperparameters'][max_hist_len_n_bit:] = [1 if i == index_to_set else 0 for i in range(n_KAN_experts)]
+
     print("Inter Chromosome Crossover applied")
     return ch1, ch2
 
-def mutation(chromosome, mutation_rate, n_features):
+def mutation(chromosome, mutation_rate, n_features, max_hist_len_n_bit, n_KAN_experts):
     # Mutate features
     chromosome.genes['features'] = [
         abs(gene - 1) if random.random() < mutation_rate else gene
@@ -148,6 +165,10 @@ def mutation(chromosome, mutation_rate, n_features):
     ]
 
     chromosome.genes['features'][n_features-14:n_features-14+5] = [1, 1, 1, 1, 1]
+
+    if sum(chromosome.genes['hyperparameters'][max_hist_len_n_bit:])==0:
+        index_to_set = random.randint(0, n_KAN_experts - 1)
+        chromosome.genes['hyperparameters'][max_hist_len_n_bit:] = [1 if i == index_to_set else 0 for i in range(n_KAN_experts)]
 
     print("Mutation applied")
     return chromosome
@@ -184,9 +205,9 @@ def genetic_algorithm(training_conf, conf):
             parent2 = population[i + 1]
 
             if (generation == (conf['total_generations']//2)): #or ((len(fg) >= 2) and (abs(fg[-1]-fg[-2]) >= 1e-5)): # // TO DO 
-                parent1 = intra_chromosome_crossover(parent1, conf['total_n_features'], conf['n_hyperparameters'])
+                parent1 = intra_chromosome_crossover(parent1, conf['total_n_features'], conf['n_hyperparameters'], conf['max_hist_len_n_bit'], conf['n_KAN_experts'])
 
-            child1, child2 = inter_chromosome_crossover(parent1, parent2, conf['total_n_features'], conf['n_hyperparameters'])
+            child1, child2 = inter_chromosome_crossover(parent1, parent2, conf['total_n_features'], conf['n_hyperparameters'], conf['max_hist_len_n_bit'], conf['n_KAN_experts'])
 
             # Calculate increment
             # // TO DO if len(fg) >= 2 and (fg[-1] - fg[-2]) != 0:
@@ -205,8 +226,8 @@ def genetic_algorithm(training_conf, conf):
 
             mutation_rate.append(mg)
 
-            next_population.append(mutation(child1, mg, conf['total_n_features']))
-            next_population.append(mutation(child2, mg, conf['total_n_features']))
+            next_population.append(mutation(child1, mg, conf['total_n_features']), conf['max_hist_len_n_bit'], conf['n_KAN_experts'])
+            next_population.append(mutation(child2, mg, conf['total_n_features']), conf['max_hist_len_n_bit'], conf['n_KAN_experts'])
 
         # Replace the old population with the new one, preserving the best individual
         next_population[0] = best_individual
@@ -264,6 +285,7 @@ class TrainLossLoggerCallback(Callback):
             # Print the average loss for the epoch
             print(f", Average Train Loss = {avg_loss.item():.4f}")
 
+# Check!
 class TestLossLoggerCallback(Callback):
     def __init__(self):
         super().__init__()
