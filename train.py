@@ -54,6 +54,7 @@ def fitness_function(ind, training_conf, conf):
     trainer, data_module, model = train_init(training_conf, conf)
     trainer, data_module, model = train_func(trainer, data_module, model)
 
+    print(model.train_losses)
     test_loss = model.test_losses[-1]
     ind.fitness = -1 * test_loss # min MSE == max -MSE 
 
@@ -254,9 +255,10 @@ def genetic_algorithm(training_conf, conf):
 
     plt.plot(generations_list, best_fitness_values, label='Best Fitness', color='black')
     plt.fill_between(generations_list, min_fitness_values, max_fitness_values, color='gray', alpha=0.5, label='Fitness Range')
+    plt.xticks(generations_list)
     plt.xlabel('Generation')
     plt.ylabel('Fitness')
-    plt.title('Fitness Over Generations')
+    plt.title(f'Fitness Over Generations for {conf["dataset_name"]}')
     plt.legend()
     plt.savefig(f'plots/GA_{conf["dataset_name"]}.png')
 
