@@ -60,7 +60,7 @@ class GeneralTSFDataset(Dataset):
 
         var_y = var_y[:, np.newaxis, np.newaxis]  # Shape: (pred_len, 1, 1, 1)
 
-        print("Var_x, Var_y", var_x.shape, var_y.shape)
+        #print("Var_x, Var_y", var_x.shape, var_y.shape)
         return var_x, marker_x, var_y, marker_y
 
     def __len__(self):
