@@ -57,7 +57,7 @@ def fitness_function(ind, training_conf, conf):
     test_loss = model.test_losses[-1]
     ind.fitness = -1 * test_loss # min MSE == max -MSE 
 
-    print("Done fitness for this individual chromosome")
+    return ind
 
 def create_initial_population(conf):
     population = []
@@ -85,7 +85,7 @@ def create_initial_population(conf):
     return population
 
 def selection(population, all_fitnesses, tournament_size=3):
-    print(population, all_fitnesses)
+    # TO DO
     selected = []
     for _ in range(len(population)):
         tournament = random.sample(list(zip(population, all_fitnesses)), tournament_size)
@@ -179,26 +179,31 @@ def genetic_algorithm(training_conf, conf):
     all_populations = []
 
     # Initialize mutation_rate and fg lists with initial values
-    fg = [0] # // TO DO 
+    fg = [0] 
     mutation_rate = [0.1]
 
     # Prepare for table
-    table = PrettyTable()
-    table.field_names = ["Generation", "Features", "Hyperparameters", "Fitness"]
+    table_total_generations = PrettyTable()
+    table_total_generations.field_names = ["Generation", "Features", "Hyperparameters", "Fitness"]
 
     for generation in range(conf['total_generations']):
         print(f"Start Generation {generation+1}")
 
-        _ = [fitness_function(ind, training_conf, conf) for ind in population]
+        list_ind = [fitness_function(ind, training_conf, conf) for ind in population]
+
+        table_each_generation = PrettyTable()
+        table_each_generation.field_names = ["Chromosome ID", "Features", "Hyperparameters", "Fitness"]
+        table_each_generation.add_row([index+1, ''.join(str(bit) for bit in element.genes['features']), ''.join(str(bit) for bit in element.genes['hyperparameters']), element.fitness] for index, element in list(enumerate(list_ind)))
+        print(table_each_generation)
 
         # Store the best performer of the current generation
         best_individual = max(population, key=lambda ch: ch.fitness)
         best_performers.append((best_individual, best_individual.fitness))
         all_populations.append(population[:])
-        table.add_row([generation + 1, "".join(map(str, best_individual.genes['features'])), "".join(map(str, best_individual.genes['hyperparameters'])), best_individual.fitness])
+
+        table_total_generations.add_row([generation + 1, ''.join(str(bit) for bit in best_individual.genes['features']), ''.join(str(bit) for bit in best_individual.genes['hyperparameters']), best_individual.fitness])
 
         all_fitnesses = [ch.fitness for ch in population]
-        print(population)
         population = selection(population, all_fitnesses)
 
         next_population = []
@@ -236,7 +241,7 @@ def genetic_algorithm(training_conf, conf):
 
         print(f"That is all for Generation {generation+1} for stock {conf['dataset_name']}")
 
-    print(table)
+    print(table_total_generations)
 
 
     generations_list = range(1, len(best_performers) + 1)
