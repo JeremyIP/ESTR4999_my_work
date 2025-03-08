@@ -164,8 +164,6 @@ class LTSFRunner(L.LightningModule):
         self.confidences.append(confidence_score)
         self.custom_losses.append(custom_loss.item())
 
-
-
     def configure_loss(self):
         #self.loss_function = ltsf_lossfunc.MSELossWrapper(reduction='mean')
         self.loss_function = ltsf_lossfunc.MSEPenaltyLoss(penalty_factor=5.0)

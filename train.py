@@ -347,7 +347,7 @@ if __name__ == '__main__':
 
     parser.add_argument("--lr", default=0.001, type=float, help="Learning rate")
     parser.add_argument("--batch_size", default=32, type=int, help="Batch size")
-    parser.add_argument("--max_epochs", default=64, type=int, help="Maximum number of epochs")
+    parser.add_argument("--max_epochs", default=32, type=int, help="Maximum number of epochs")
     parser.add_argument("--optimizer", default="AdamW", type=str, help="Optimizer type")
     parser.add_argument("--optimizer_betas", default=(0.9, 0.999), type=eval, help="Optimizer betas")
     parser.add_argument("--optimizer_weight_decay", default=1e-4, type=float, help="Optimizer weight decay")
