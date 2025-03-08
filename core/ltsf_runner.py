@@ -141,7 +141,7 @@ class LTSFRunner(L.LightningModule):
         mean_error_percentage = torch.mean(torch.abs((label - prediction) / label) * 100)
         self.log('test/mae', mae, on_step=False, on_epoch=True, sync_dist=True)
         self.log('test/mse', mse, on_step=False, on_epoch=True, sync_dist=True)
-        self.log('test/custom_loss', custom_loss, on_step=True, on_epoch=True, sync_dist=True)
+        self.log('test/custom_loss', custom_loss, on_step=True, on_epoch=True, prog_bar=True, sync_dist=True)
         self.log('test/error_percentage', mean_error_percentage, on_step=False, on_epoch=True, prog_bar=True, sync_dist=True)
 
         predicted_price_tomorrow = prediction.item()
