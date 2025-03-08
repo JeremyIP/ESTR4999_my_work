@@ -251,7 +251,7 @@ def genetic_algorithm(training_conf, conf):
     best_fitness_values = [fit[1] for fit in best_performers]
     min_fitness_values = [min([ch.fitness for ch in population]) for population in all_populations]
     max_fitness_values = [max([ch.fitness for ch in population]) for population in all_populations]
-    fig, plt = plt.subplots()
+
     plt.plot(generations_list, best_fitness_values, label='Best Fitness', color='black')
     plt.fill_between(generations_list, min_fitness_values, max_fitness_values, color='gray', alpha=0.5, label='Fitness Range')
     plt.xlabel('Generation')
