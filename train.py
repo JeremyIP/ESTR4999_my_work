@@ -85,6 +85,7 @@ def create_initial_population(conf):
     return population
 
 def selection(population, all_fitnesses, tournament_size=3):
+    print(population, all_fitnesses)
     selected = []
     for _ in range(len(population)):
         tournament = random.sample(list(zip(population, all_fitnesses)), tournament_size)
@@ -186,7 +187,7 @@ def genetic_algorithm(training_conf, conf):
     table.field_names = ["Generation", "Features", "Hyperparameters", "Fitness"]
 
     for generation in range(conf['total_generations']):
-        print(f"Start Generation {generation}")
+        print(f"Start Generation {generation+1}")
 
         _ = [fitness_function(ind, training_conf, conf) for ind in population]
 
