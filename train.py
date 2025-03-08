@@ -372,7 +372,7 @@ if __name__ == '__main__':
     parser.add_argument("--max_epochs", default=64, type=int, help="Maximum number of epochs")
     parser.add_argument("--optimizer", default="AdamW", type=str, help="Optimizer type")
     parser.add_argument("--optimizer_betas", default=(0.9, 0.999), type=eval, help="Optimizer betas")
-    parser.add_argument("--optimizer_weight_decay", default=1e-3, type=float, help="Optimizer weight decay")
+    parser.add_argument("--optimizer_weight_decay", default=1e-2, type=float, help="Optimizer weight decay")
     parser.add_argument("--lr_scheduler", default='StepLR', type=str, help="Learning rate scheduler")
     parser.add_argument("--lr_step_size", default=32, type=int, help="Learning rate step size")
     parser.add_argument("--lr_gamma", default=0.64, type=float, help="Learning rate gamma")
@@ -389,7 +389,7 @@ if __name__ == '__main__':
     parser.add_argument("--max_hist_len", default=64, type=int, help="Maximum window size allowed")
     parser.add_argument("--n_KAN_experts", default=6, type=int, help="Number of KAN experts to be used")
 
-    parser.add_argument("--drop", default=0.1, type=float, help="Dropout rate for mixture of KAN")
+    parser.add_argument("--drop", default=0.2, type=float, help="Dropout rate for input features in KAN")
 
     parser.add_argument("--pred_len", default=1, type=int, help="Number of predicted made each time (should be fixed)")
     parser.add_argument("--data_split", default=[2000, 0, 500], type=list, help="Train-Val-Test Ratio (Val should be fixed to 0)")
