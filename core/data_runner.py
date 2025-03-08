@@ -20,25 +20,31 @@ class GeneralTSFDataset(Dataset):
 
         mode_map = {'train': 0, 'valid': 1, 'test': 2}
         self.set_type = mode_map[mode]
-        self.var, self.time_marker = self.__read_data__()
+        self.var, self.time_marker, self.norm_closing = self.__read_data__()
 
     def __read_data__(self):
         norm_feature_path = os.path.join(self.data_dir, 'feature.npz')
         norm_feature = np.load(norm_feature_path)
 
-        norm_var = norm_feature['norm_var'][:, np.array(self.indicators_bool).astype(bool)]
+        #norm_var = norm_feature['norm_var'][:, np.array(self.indicators_bool).astype(bool)]
+        norm_var = norm_feature['norm_var'][:, np.array(self.indicators_bool, dtype=bool)]
         norm_time_marker = norm_feature['norm_time_marker']
+        norm_closing = norm_feature['norm_var'][:, -11] # Check!
 
         border1s = [0, self.train_len, self.train_len + self.val_len]
         border2s = [self.train_len, self.train_len + self.val_len, self.train_len + self.val_len + self.test_len]
         border1 = border1s[self.set_type]
         border2 = border2s[self.set_type]
+
         norm_var = norm_var[border1:border2]
         norm_time_marker = norm_time_marker[border1:border2]
+        norm_closing = norm_closing[border1:border2]
 
         norm_var = norm_var[:, :, np.newaxis]  # (L, N, C)
         norm_time_marker = norm_time_marker[:, np.newaxis, :]  # L, -1, C, C = [tod, dow, dom, doy]
-        return norm_var, norm_time_marker
+        norm_closing = norm_closing[:, :, np.newaxis]
+        
+        return norm_var, norm_time_marker, norm_closing
 
     def __getitem__(self, index):
         hist_start = index
@@ -48,11 +54,13 @@ class GeneralTSFDataset(Dataset):
         var_x = self.var[hist_start:hist_end, ...]
         marker_x = self.time_marker[hist_start:hist_end, ...]
 
-        var_y = self.var[hist_end:pred_end, 3, 0]
+        #var_y = self.var[hist_end:pred_end, 3, 0]
+        var_y = self.norm_closing[hist_start:hist_end, ...]
         marker_y = self.time_marker[hist_end:pred_end, ...]
 
         var_y = var_y[:, np.newaxis, np.newaxis]  # Shape: (pred_len, 1, 1)
 
+        print(var_x.shape, var_y.shape)
         return var_x, marker_x, var_y, marker_y
 
     def __len__(self):
