@@ -198,10 +198,11 @@ def genetic_algorithm(training_conf, conf):
         table.add_row([generation + 1, "".join(map(str, best_individual.genes['features'])), "".join(map(str, best_individual.genes['hyperparameters'])), best_individual.fitness])
 
         all_fitnesses = [ch.fitness for ch in population]
+        print(population)
         population = selection(population, all_fitnesses)
 
         next_population = []
-        for i in range(0, len(population)-1, 2):
+        for i in range(0, conf['population_size'], 2):
             parent1 = population[i]
             parent2 = population[i + 1]
 
@@ -375,7 +376,7 @@ if __name__ == '__main__':
     parser.add_argument("--es_patience", default=10, type=int, help="Early stopping patience") # // Not used
     parser.add_argument("--num_workers", default=10, type=int, help="Number of workers for data loading")
 
-    parser.add_argument("--population_size", default=3, type=int, help="Population Size for GA")
+    parser.add_argument("--population_size", default=4, type=int, help="Population Size for GA")
     parser.add_argument("--total_generations", default=10, type=int, help="Total number of generations for GA")
     parser.add_argument("--total_n_features", default=50, type=int, help="Total number of features for GA") # // Check!
     parser.add_argument("--min_hist_len", default=4, type=int, help="Minimum window size allowed")
