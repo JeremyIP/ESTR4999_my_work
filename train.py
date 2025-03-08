@@ -11,7 +11,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 import lightning.pytorch as L
-from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint, EarlyStopping
+from lightning.pytorch.callbacks import LearningRateMonitor, EarlyStopping
 from lightning.pytorch.loggers import CSVLogger, WandbLogger
 from lightning.pytorch.callbacks import Callback
 
@@ -246,7 +246,6 @@ def genetic_algorithm(training_conf, conf):
     return var_num, indicators_list_01, hist_len, hist_len_list_01, KAN_experts_list_01
 
 
-
 class TrainLossLoggerCallback(Callback):
     def __init__(self):
         super().__init__()
@@ -263,7 +262,7 @@ class TrainLossLoggerCallback(Callback):
             # Append the average loss to the list
             self.train_losses.append(avg_loss.item())
             # Print the average loss for the epoch
-            print(f"Average Train Loss = {avg_loss.item():.4f}")
+            print(f", Average Train Loss = {avg_loss.item():.4f}")
 
 class TestLossLoggerCallback(Callback):
     def __init__(self):
@@ -271,17 +270,10 @@ class TestLossLoggerCallback(Callback):
         self.test_losses = []
 
     def on_test_epoch_end(self, trainer, pl_module):
-        """
-        Called at the end of the training epoch.
-        Collects the average training loss and appends it to the train_losses list.
-        """
-        # Retrieve the average training loss from callback_metrics
-        avg_loss = trainer.callback_metrics.get('test/loss')
+        avg_loss = trainer.callback_metrics.get('test/custom_loss')
         if avg_loss is not None:
-            # Append the average loss to the list
             self.test_losses.append(avg_loss.item())
-            # Print the average loss for the epoch
-            print(f"Average Test Loss = {avg_loss.item():.4f}")
+            print(f", Average Test Loss = {avg_loss.item():.4f}")
 
 
 def train_init(hyper_conf, conf):
@@ -300,13 +292,6 @@ def train_init(hyper_conf, conf):
     conf["exp_dir"] = os.path.join(save_dir, conf["conf_hash"], 'seed_{}'.format(conf["seed"]))
 
     callbacks = [
-        # ModelCheckpoint(
-        #     monitor=conf["val_metric"],
-        #     mode="min",
-        #     save_top_k=1,
-        #     save_last=False,
-        #     every_n_epochs=1,
-        # ),
         # EarlyStopping(
         #     monitor=conf["val_metric"],
         #     mode='min',
@@ -316,7 +301,6 @@ def train_init(hyper_conf, conf):
         TrainLossLoggerCallback(),
         TestLossLoggerCallback(), 
     ]
-
 
     trainer = L.Trainer(
         devices=conf["devices"],

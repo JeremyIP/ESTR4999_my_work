@@ -27,12 +27,6 @@ class LTSFRunner(L.LightningModule):
         self.register_buffer('min', torch.tensor(stat['min'][np.array(self.indicators_bool).astype(bool)]).float())
         self.register_buffer('max', torch.tensor(stat['max'][np.array(self.indicators_bool).astype(bool)]).float())
 
-        # Use the closing price channel (index 3) for output de-normalization.
-        # close_index = 3  # Index of Close price in OHLC
-        # min_close = self.min[close_index].view(1, 1, 1).cuda()   # Shape: [1, 1, 1]
-        # max_close = self.max[close_index].view(1, 1, 1).cuda()   # Shape: [1, 1, 1]
-        # self.model.rev_output.set_statistics(min_close, max_close)
-
         # To record the train and val loss for each epoch 
         self.train_losses = []
         self.test_losses = []
