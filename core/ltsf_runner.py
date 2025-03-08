@@ -185,7 +185,7 @@ class LTSFRunner(L.LightningModule):
                 self.parameters(), lr=self.hparams.lr, weight_decay=self.hparams.optimizer_weight_decay)
         elif self.hparams.optimizer == 'AdamW':
             optimizer = torch.optim.AdamW(
-                self.parameters(), lr=self.hparams.lr, betas=(0.9, 0.95), weight_decay=1e-5)
+                self.parameters(), lr=self.hparams.lr, betas=self.hparams.optimizer_betas, weight_decay=self.hparams.optimizer_weight_decay)
         elif self.hparams.optimizer == 'LBFGS':
             optimizer = torch.optim.LBFGS(self.parameters(), lr=self.hparams.lr, max_iter=self.hparams.lr_max_iter)
         else:
@@ -194,7 +194,7 @@ class LTSFRunner(L.LightningModule):
         if self.hparams.lr_scheduler == 'StepLR':
             lr_scheduler = {
                 "scheduler": lrs.StepLR(
-                    optimizer, step_size=self.hparams.lr_step_size, gamma=self.hparams.lr_gamma)
+                    optimizer, step_size=self.hparams.lr_step_size, gamma=self.hparams.lr_gamma, verbose=True)
             }
         elif self.hparams.lr_scheduler == 'MultiStepLR':
             lr_scheduler = {

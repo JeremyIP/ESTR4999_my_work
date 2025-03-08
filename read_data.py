@@ -3,15 +3,13 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 import os
-import pandas_ta as ta # Import Pandas TA for technical indicators
+import pandas_ta as ta 
 import matplotlib.pyplot as plt
 import mplfinance as mpf
 from scipy.signal import hilbert
 from pre_selection import *
-
 import gc
 gc.collect()
-
 
 start_date, end_date = '2010-01-01','2022-12-31'
 window = 30
@@ -44,7 +42,6 @@ for ticker_symbol in ticker_symbols:
     stock_data[ticker_symbol] = stock_series  # Store the smoothed data in the dictionary
 
     '''
-    # Plot using mplfinance
     mpf.plot(stock_series,
              type='line',
              volume=True,
@@ -289,7 +286,7 @@ index_df.to_csv(f"{output_dir}/index_df.csv", index=True)
 
 
 cap_weighted_composite_index_df = cap_weighted_composite_index(stock_df)
-top_k_correlations = cap_weighted_correlation_plots(cap_weighted_composite_index_df, macro_df, k=10)
+top_k_correlations = cap_weighted_correlation_plots(cap_weighted_composite_index_df, macro_df, k=10) # Check!
 
 
 
@@ -334,3 +331,5 @@ for stock in ticker_symbols:
 
     # Save the final combined data and normalized time markers
     np.savez(os.path.join(output_dir, f'feature.npz'), norm_var=combined_data.values, norm_time_marker=norm_time_marker)
+
+    combined_data.to_csv(f"{output_dir}/all_data.csv", index=True)

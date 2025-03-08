@@ -2,7 +2,13 @@ import argparse
 import importlib
 import importlib.util
 import os
+import subprocess
 import math
+import random
+from prettytable import PrettyTable
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
 import lightning.pytorch as L
 from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint, EarlyStopping
@@ -12,12 +18,6 @@ from lightning.pytorch.callbacks import Callback
 from core.data_runner import DataInterface
 from core.ltsf_runner import LTSFRunner
 from core.util import cal_conf_hash
-
-
-import random
-from prettytable import PrettyTable
-import numpy as np
-import matplotlib.pyplot as plt
 
 
 seed_value = 4999
@@ -38,7 +38,8 @@ def decode(ind, conf):
     var_num = sum(indicators_list_01)
     
     hist_len_list_01, KAN_experts_list_01 = ind.genes['hyperparameters'][:conf['max_hist_len_n_bit']], ind.genes['hyperparameters'][conf['max_hist_len_n_bit']:]
-    hist_len = int("".join(map(str, hist_len_list_01)), 2)
+    hist_len = conf['min_hist_len'] + 4 * sum(bit << i for i, bit in enumerate(reversed(hist_len_list_01)))
+    #hist_len = conf['min_hist_len'] + 4 * int("".join(map(str, hist_len_list_01)), 2)
 
     return var_num, indicators_list_01, hist_len, hist_len_list_01, KAN_experts_list_01
 
@@ -49,7 +50,7 @@ def fitness_function(ind, training_conf, conf):
     print(f"window size: {conf['hist_len']}")
     print(conf['hist_len_list_01'])
 
-    print("Experts T, W, J, C, R, N", conf['args.KAN_experts_list_01'])
+    print("Experts Taylor, Wavelet, Jacobi, Cheby, RBF, NaiveFourier", conf['args.KAN_experts_list_01'])
 
     trainer, data_module, model = train_init(training_conf, conf)
     trainer, data_module, model = train_func(trainer, data_module, model)
@@ -57,7 +58,7 @@ def fitness_function(ind, training_conf, conf):
     test_loss = model.test_losses[-1]
     ind.fitness = -1 * test_loss # min MSE == max -MSE 
 
-    print("Done fitness once")
+    print("Done fitness for this individual chromosome")
 
 def create_initial_population(conf):
     population = []
@@ -65,11 +66,11 @@ def create_initial_population(conf):
     for _ in range(conf['population_size']):
         # 5 (index) : ('^GSPC', 'Open')	('^GSPC', 'High')	('^GSPC', 'Low')	('^GSPC', 'Close')	('^GSPC', 'Volume')	
         # 31 (technical indicators) : Bollinger_Bands_Upper	Bollinger_Bands_Middle	Bollinger_Bands_Lower	DEMA	Midpoint	Midpoint_Price	T3_Moving_Average	ADX	Absolute_Price_Oscillator	Aroon_Up	Aroon_Down	Aroon_Oscillator	Balance_of_Power	CCI	Chande_Momentum_Oscillator	MACD	MACD_Signal	MACD_Histogram	Money_Flow_Index	Normalized_Average_True_Range	Chaikin_A/D_Line	Chaikin_A/D_Oscillator	Median_Price	Typical_Price	Weighted_Closing_Price	Hilbert_Dominant_Cycle_Phase	Hilbert_Phasor_Components_Inphase	Hilbert_Phasor_Components_Quadrature	Hilbert_SineWave	Hilbert_LeadSineWave	Hilbert_Trend_vs_Cycle_Mode	
-        # 5( stock) : Open	High	Low	Close	Volume	 # TO DO ???
+        # 5( stock) : Open	High	Low	Close	Volume	
         # 9 (macro indicators) : M2	S&P CoreLogic Case-Shiller U.S. National Home Price Index	All-Transactions House Price Index for the United States	M1	Consumer Price Index for All Urban Consumers: All Items in U.S. City Average	Trade Balance: Goods and Services, Balance of Payments Basis	New Privately-Owned Housing Units Started: Total Units	Domestic Auto Production	New One Family Houses Sold
 
         features = [random.choice([0, 1]) for _ in range(conf['total_n_features'])]
-        features[conf['total_n_features']-14:conf['total_n_features']-14+5] = [1, 1, 1, 1, 1] # TO DO ///
+        features[conf['total_n_features']-14:conf['total_n_features']-14+5] = [1, 1, 1, 1, 1] 
 
         hist_len_list_01 = [random.choice([0, 1]) for _ in range(conf['max_hist_len_n_bit'])] 
         KAN_experts_list_01 = [random.choice([0, 1]) for _ in range(conf['n_KAN_experts'])] 
@@ -79,7 +80,6 @@ def create_initial_population(conf):
 
     return population
 
-
 def selection(population, all_fitnesses, tournament_size=3):
     selected = []
     for _ in range(len(population)):
@@ -87,7 +87,6 @@ def selection(population, all_fitnesses, tournament_size=3):
         winner = max(tournament, key=lambda x: x[1])[0]
         selected.append(winner)
     return selected
-
 
 def intra_chromosome_crossover(ch1, n_features, n_hyperparameters):
     n = min(n_features, n_hyperparameters)
@@ -104,9 +103,10 @@ def intra_chromosome_crossover(ch1, n_features, n_hyperparameters):
         not_selected_index.remove(swap_index)
         ch1.genes['features'][idx], ch1.genes['hyperparameters'][swap_index] = ch1.genes['hyperparameters'][swap_index], ch1.genes['features'][idx]
     
-    ch1.genes['features'][n_features-14:n_features-14+5] = [1, 1, 1, 1, 1] # TO DO ///
+    ch1.genes['features'][n_features-14:n_features-14+5] = [1, 1, 1, 1, 1] 
+    
+    print("Intra Chromosome Crossover applied")
     return ch1
-
 
 def inter_chromosome_crossover(ch1, ch2, n_features, n_hyperparameters):
 
@@ -128,11 +128,11 @@ def inter_chromosome_crossover(ch1, ch2, n_features, n_hyperparameters):
     ch2.genes['features'] = features2
     ch2.genes['hyperparameters'] = hyperparameters2
 
-    ch1.genes['features'][n_features-14:n_features-14+5] = [1, 1, 1, 1, 1] # TO DO ///
-    ch2.genes['features'][n_features-14:n_features-14+5] = [1, 1, 1, 1, 1] # TO DO ///
-    
-    return ch1, ch2
+    ch1.genes['features'][n_features-14:n_features-14+5] = [1, 1, 1, 1, 1] 
+    ch2.genes['features'][n_features-14:n_features-14+5] = [1, 1, 1, 1, 1] 
 
+    print("Inter Chromosome Crossover applied")
+    return ch1, ch2
 
 def mutation(chromosome, mutation_rate, n_features):
     # Mutate features
@@ -147,9 +147,10 @@ def mutation(chromosome, mutation_rate, n_features):
         for gene in chromosome.genes['hyperparameters']
     ]
 
-    chromosome.genes['features'][n_features-14:n_features-14+5] = [1, 1, 1, 1, 1] # TO DO ///
-    return chromosome
+    chromosome.genes['features'][n_features-14:n_features-14+5] = [1, 1, 1, 1, 1]
 
+    print("Mutation applied")
+    return chromosome
 
 def genetic_algorithm(training_conf, conf):
     population = create_initial_population(conf)    
@@ -246,7 +247,6 @@ def genetic_algorithm(training_conf, conf):
 
 
 
-
 class TrainLossLoggerCallback(Callback):
     def __init__(self):
         super().__init__()
@@ -328,8 +328,8 @@ def train_func(trainer, data_module, model):
 
 
 
-ticker_symbols = ['AAPL']
-#, 'MSFT', 'ORCL', 'AMD', 'CSCO', 'ADBE', 'IBM', 'TXN', 'AMAT', 'MU', 'ADI', 'INTC', 'LRCX', 'KLAC', 'MSI', 'GLW', 'HPQ', 'TYL', 'PTC', 'WDC']
+ticker_symbols = ['AAPL', 'MSFT']
+#, 'ORCL', 'AMD', 'CSCO', 'ADBE', 'IBM', 'TXN', 'AMAT', 'MU', 'ADI', 'INTC', 'LRCX', 'KLAC', 'MSI', 'GLW', 'HPQ', 'TYL', 'PTC', 'WDC']
 
 if __name__ == '__main__':
 
@@ -340,26 +340,27 @@ if __name__ == '__main__':
     parser.add_argument("--use_wandb", default=0, type=int, help="use wandb")
     parser.add_argument("--seed", type=int, default=1, help="seed")
     parser.add_argument("--model_name", default="DenseRMoK", type=str, help="Model name")
-    parser.add_argument("--revin_affine", default=False, type=bool, help="Use revin affine")
+    parser.add_argument("--revin_affine", default=False, type=bool, help="Use revin affine") # // Check!
 
     parser.add_argument("--lr", default=0.001, type=float, help="Learning rate")
     parser.add_argument("--batch_size", default=32, type=int, help="Batch size")
-    parser.add_argument("--max_epochs", default=32, type=int, help="Maximum number of epochs")
+    parser.add_argument("--max_epochs", default=64, type=int, help="Maximum number of epochs")
     parser.add_argument("--optimizer", default="AdamW", type=str, help="Optimizer type")
-    parser.add_argument("--optimizer_betas", default=(0.95, 0.9), type=eval, help="Optimizer betas")
-    parser.add_argument("--optimizer_weight_decay", default=1e-5, type=float, help="Optimizer weight decay")
+    parser.add_argument("--optimizer_betas", default=(0.9, 0.999), type=eval, help="Optimizer betas")
+    parser.add_argument("--optimizer_weight_decay", default=1e-4, type=float, help="Optimizer weight decay")
     parser.add_argument("--lr_scheduler", default='StepLR', type=str, help="Learning rate scheduler")
-    parser.add_argument("--lr_step_size", default=5, type=int, help="Learning rate step size")
-    parser.add_argument("--lr_gamma", default=0.5, type=float, help="Learning rate gamma")
-    parser.add_argument("--gradient_clip_val", default=5, type=float, help="Gradient clipping value")
+    parser.add_argument("--lr_step_size", default=16, type=int, help="Learning rate step size")
+    parser.add_argument("--lr_gamma", default=0.64, type=float, help="Learning rate gamma")
+    parser.add_argument("--gradient_clip_val", default=5, type=float, help="Gradient clipping value") # // Not used
     parser.add_argument("--val_metric", default="val/loss", type=str, help="Validation metric")
     parser.add_argument("--test_metric", default="test/mae", type=str, help="Test metric")
-    parser.add_argument("--es_patience", default=10, type=int, help="Early stopping patience")
+    parser.add_argument("--es_patience", default=10, type=int, help="Early stopping patience") # // Not used
     parser.add_argument("--num_workers", default=10, type=int, help="Number of workers for data loading")
 
-    parser.add_argument("--population_size", default=10, type=int, help="Population Size for GA")
-    parser.add_argument("--total_generations", default=2, type=int, help="Total number of generations for GA")
-    parser.add_argument("--total_n_features", default=50, type=int, help="Total number of features for GA")
+    parser.add_argument("--population_size", default=20, type=int, help="Population Size for GA")
+    parser.add_argument("--total_generations", default=10, type=int, help="Total number of generations for GA")
+    parser.add_argument("--total_n_features", default=50, type=int, help="Total number of features for GA") # // Check!
+    parser.add_argument("--min_hist_len", default=4, type=int, help="Minimum window size allowed")
     parser.add_argument("--max_hist_len", default=64, type=int, help="Maximum window size allowed")
     parser.add_argument("--n_KAN_experts", default=6, type=int, help="Number of KAN experts to be used")
 
@@ -367,21 +368,27 @@ if __name__ == '__main__':
 
     parser.add_argument("--pred_len", default=1, type=int, help="Number of predicted made each time (should be fixed)")
     parser.add_argument("--data_split", default=[2000, 0, 500], type=list, help="Train-Val-Test Ratio (Val should be fixed to 0)")
-    parser.add_argument("--freq", default=1440, type=int, help="(should be fixed)")
+    parser.add_argument("--freq", default=1440, type=int, help="(should be fixed)") # // Check!
+
+    '''
+    script_name = 'read_data.py'
+    _ = subprocess.run(['python', script_name], capture_output=True, text=True)'
+    '''
 
     args = parser.parse_args()
-
-    args.max_hist_len_n_bit = math.floor(math.log2(args.max_hist_len))
+    args.max_hist_len_n_bit = math.floor(math.log2( (args.max_hist_len-args.min_hist_len) / 4 + 1 ))
     args.n_hyperparameters = args.max_hist_len_n_bit + args.n_KAN_experts
     
     for symbol in ticker_symbols:
         # Before GA
         args.dataset_name = symbol
 
-        args.var_num = 50
-        args.indicators_list_01 = [1 for i in range(args.total_n_features)]
+        df = pd.read_csv(f"dataset/{symbol}/all_data.csv")
+        args.var_num = df.shape[1] - 1 # Exclude the dates column
 
-        args.hist_len = 128
+        args.indicators_list_01 = [1 for i in range(args.total_n_features)] # // Check!
+
+        args.hist_len = 4
         args.hist_len_list_01 = [1 for i in range(args.max_hist_len_n_bit)]
 
         args.KAN_experts_list_01 = [1 for i in range(args.n_KAN_experts)] # Ordering: T, W, J, C, R, N
@@ -399,7 +406,7 @@ if __name__ == '__main__':
         print("Doing GA")
         args.var_num, args.indicators_list_01, args.hist_len, args.hist_len_list_01, args.KAN_experts_list_01 = genetic_algorithm(training_conf, vars(args))
 
-        print("After GA: ")
+        print("After GA, optimal choices: ")
         print(args.var_num)
         print(args.indicators_list_01)
         print(args.hist_len)
@@ -410,3 +417,6 @@ if __name__ == '__main__':
         trainer, data_module, model = train_init(training_conf, vars(args))
         trainer, data_module, model = train_func(trainer, data_module, model)
         print("\n")
+
+        print("Baselinee model is built: ")
+        # // Check! Baseline Model
