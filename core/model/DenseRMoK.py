@@ -62,7 +62,7 @@ class RevIN(nn.Module):
         if x.shape[-1] > 1:
             x = x[..., 3:4]
 
-        print(x.shape)
+        print(self.min_val.shape)
         return x
         
     def set_statistics(self, min_val, max_val):
