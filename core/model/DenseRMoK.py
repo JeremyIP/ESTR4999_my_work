@@ -61,7 +61,7 @@ class RevIN(nn.Module):
         x = x * (max_target - min_target + self.eps) + min_target
         if x.shape[-1] > 1:
             x = x[..., 3:4]
-
+        # x: batch, 1, 1
         print(self.min_val.shape)
         return x
         
