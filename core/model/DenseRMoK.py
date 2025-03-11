@@ -52,17 +52,14 @@ class RevIN(nn.Module):
         return x
 
     def _denormalize(self, x):
-        # Select the statistics for closing price which is at index 3 in the input.
-        min_target = self.min_val[..., 3:4]  # Keepdim so that shape broadcasting works.
-        max_target = self.max_val[..., 3:4]
+        min_target = self.min_val[..., sum(self.indicators_bool[:-14])+4-1]  
+        max_target = self.max_val[..., sum(self.indicators_bool[:-14])+4-1]
         if self.affine:
             x = (x - self.affine_bias) / (self.affine_weight + self.eps)
 
         x = x * (max_target - min_target + self.eps) + min_target
         if x.shape[-1] > 1:
-            x = x[..., 3:4]
-        # x: batch, 1, 1
-        print(self.min_val.shape)
+            x = x[..., sum(self.indicators_bool[:-14])+4-1]
         return x
         
     def set_statistics(self, min_val, max_val):
